@@ -1,0 +1,8 @@
+{
+  "name": "LicensePlateApp",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular",
+  "id": "3025469d"
+}
