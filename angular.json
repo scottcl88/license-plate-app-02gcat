@@ -72,6 +72,12 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "app:build",
+            "ssl": true,
+            "sslCert": ".ionic/ssl/localhost.crt",
+            "sslKey": ".ionic/ssl/localhost.key"
+          },
           "configurations": {
             "production": {
               "browserTarget": "app:build:production"

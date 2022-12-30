@@ -1,0 +1,65 @@
+<!--
+Copyright 2022 Scott Lewis, All rights reserved.
+-->
+<app-header title="Register">
+</app-header>
+<ion-content>
+  <div id="container" style="margin-left: 5px; margin-right: 5px;">
+    <p style="margin-top: 15px;">Sign Up for License Plate App</p><br>
+    <ion-text color="danger" style="font-size: 15px; font-weight: bold;" *ngIf="showErrors">{{errorMessage}}</ion-text>
+
+    <form [formGroup]="registerForm" action="">
+      <ion-item lines="inset">
+        <ion-label position="floating">Name</ion-label>
+        <ion-input type="name" [value]="name" (ionChange)="nameChanged($event)" formControlName="name"
+          autofocus="true" required>
+        </ion-input>
+        <ion-text color="danger" class="error" *ngIf="submitted && errorCtr.name.errors?.required">
+          Name is required.
+        </ion-text>
+      </ion-item>
+      <ion-item lines="inset">
+        <ion-label  position="floating">Email</ion-label>
+        <ion-input type="email" [value]="email" (ionChange)="emailChanged($event)" formControlName="email"
+          autofocus="true" required>
+        </ion-input>
+        <ion-text color="danger" class="error" *ngIf="submitted && errorCtr.email.errors?.required">
+          Email is required.
+        </ion-text>
+        <ion-text color="danger" class="error" *ngIf="submitted && errorCtr.email.errors?.email">
+          Valid email is required.
+        </ion-text>
+      </ion-item>
+      <ion-item lines="inset">
+        <ion-label position="floating">Password</ion-label>
+        <ion-input type="password" [value]="password" (ionChange)="passwordChanged($event)"
+          autofocus="true" formControlName="password" required>
+        </ion-input>
+        <ion-text color="danger" class="error" *ngIf="submitted && errorCtr.password.errors?.required">
+          Password is required.
+        </ion-text>
+      </ion-item>
+      <ion-item lines="inset">
+        <ion-label position="floating">Confirm Password</ion-label>
+        <ion-input type="password" [value]="password2" (ionChange)="password2Changed($event)"
+          autofocus="true" formControlName="password2" required>
+        </ion-input>
+        <ion-text color="danger" class="error" *ngIf="submitted && (errorCtr.password2.errors?.required || invalidConfirmPassword)">
+          Confirm Password must match.
+        </ion-text>
+      </ion-item>
+      <ion-chip (click)="register()" style="background: var(--ion-color-success);margin-top: 10px;padding: 20px;"
+        class="text-center common-border">
+        <span *ngIf="isSaving">
+          <ion-spinner name="crescent" style="font-size: 20px;"></ion-spinner>
+        </span>
+        <span *ngIf="!isSaving">
+          <ion-icon name="log-in-outline" style="font-size: 20px;"></ion-icon>
+        </span>
+        <span style="margin-left: 10px; font-size: 20px;">Sign Up
+        </span>
+      </ion-chip>
+    </form>
+    <!-- <ion-button (click)="login()">Login</ion-button> -->
+  </div>
+</ion-content>

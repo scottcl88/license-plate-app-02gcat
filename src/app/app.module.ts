@@ -1,16 +1,50 @@
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { RouteReuseStrategy } from '@angular/router';
+import { RouteReuseStrategy, RouterModule } from '@angular/router';
 
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
+import { AccountService } from './account.service';
+import { StorageService } from './storage.service';
+
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+
+import { appInitializer, ErrorInterceptor, JwtInterceptor } from './_helpers';
+import { LoggerModule, NgxLoggerLevel } from 'ngx-logger';
+import { CommonModule } from '@angular/common';
+import { IonicStorageModule } from '@ionic/storage-angular';
+import { DateFnsModule } from 'ngx-date-fns';
+import { environment } from 'src/environments/environment';
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule],
-  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
+  imports: [
+    BrowserModule,
+    LoggerModule.forRoot({
+      serverLoggingUrl: environment.API_BASE_URL + '/api/Log/AddLog',
+      enableSourceMaps: false,
+      disableFileDetails: true,
+      level: NgxLoggerLevel.DEBUG,
+      serverLogLevel: environment.ServerLogLevel,
+    }),
+    IonicModule.forRoot(),
+    DateFnsModule.forRoot(),
+    AppRoutingModule,
+    HttpClientModule,
+    IonicStorageModule.forRoot(),
+    CommonModule,
+    RouterModule,
+    // BrowserAnimationsModule,
+  ],
+  // imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule],
+  providers: [
+    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    { provide: APP_INITIALIZER, useFactory: appInitializer, multi: true, deps: [AccountService, StorageService] },
+    { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
+  ],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule { }

@@ -1,0 +1,19 @@
+<!--
+Copyright 2022 Scott Lewis, All rights reserved.
+-->
+<ion-header class="logo">
+  <ion-toolbar class="translucent">
+    <ion-buttons slot="start" *ngIf="menuButton">
+      <ion-menu-button color="dark"></ion-menu-button>
+    </ion-buttons>
+    <ion-title color="dark" class="text-center d-contents-small" [style]="titleStyle">{{title}}
+    </ion-title>
+    <ng-content></ng-content>
+    <!-- <ion-buttons slot="end">
+      <ion-button id="trigger-options">
+        <ion-icon name="ellipsis-vertical-outline"
+          style="font-size: 24px;height: 48px; margin-right: 0px; margin-left: 0px;"></ion-icon>
+      </ion-button>
+    </ion-buttons> -->
+  </ion-toolbar>
+</ion-header>

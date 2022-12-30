@@ -1,0 +1,63 @@
+<!--
+Copyright 2022 Scott Lewis, All rights reserved.
+-->
+<app-header title="Login">
+</app-header>
+<ion-content>
+  <div id="container" style="margin-left: 5px; margin-right: 5px;">
+    <!-- <h1 style="color: black;">Surf-N-Eat</h1> -->
+    <!-- <img src="../assets/logo_text_clear_red.png" alt="Surf-N-Eat" /> -->
+    <p style="margin-top: 15px;">Login for FREE!</p><br>
+    <form [formGroup]="loginForm" action="">
+      <ion-grid>
+        <ion-row>
+          <ion-col>
+            <ion-text color="danger" style="font-size: 15px; font-weight: bold;" *ngIf="showErrors">{{errorMessage}}
+            </ion-text>
+            <ion-item lines="inset">
+              <ion-label position="floating">Email</ion-label>
+              <ion-input type="email" [value]="email" enterkeyhint="enter"
+                (ionChange)="emailChanged($event)" autofocus="true" formControlName="email" required>
+              </ion-input>
+              <ion-text color="danger" class="error" *ngIf="submitted && errorCtr.email.errors?.required">
+                Email is required.
+              </ion-text>
+              <ion-text color="danger" class="error" *ngIf="submitted && errorCtr.email.errors?.email">
+                Valid email is required.
+              </ion-text>
+            </ion-item>
+            <ion-item lines="inset">
+              <ion-label position="floating">Password</ion-label>
+              <ion-input type="password" [value]="password" enterkeyhint="enter"
+                (ionChange)="passwordChanged($event)" formControlName="password" required (keyup.enter)="login()">
+              </ion-input>
+              <ion-text color="danger" class="error" *ngIf="submitted && errorCtr.password.errors?.required">
+                Password is required.
+              </ion-text>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+      <ion-chip (click)="login()" style="background: var(--ion-color-success);margin-top: 10px;padding: 20px;"
+        class="text-center common-border">
+        <span *ngIf="isSaving">
+          <ion-spinner name="crescent" style="font-size: 20px;"></ion-spinner>
+        </span>
+        <span *ngIf="!isSaving">
+          <ion-icon name="log-in-outline" style="font-size: 20px;"></ion-icon>
+        </span>
+        <span style="margin-left: 10px; font-size: 20px;">Login
+        </span>
+      </ion-chip>
+    </form>
+    <!-- <ion-chip (click)="login()"
+      style="background: var(--ion-color-success);width:40%;margin-left:auto;margin-right:auto; display:block;"
+      class="text-center common-border">
+      <ion-icon name="log-in-outline"></ion-icon>
+      <span style="">Login</span>
+    </ion-chip> -->
+    <a (click)="resetPassword()" class="pointer" style="display: block; margin-top: 10px;">Forgot Password?</a>
+    <p style="margin-top: 20px;">New to Surf-N-Eat? <a (click)="register()" class="pointer">Sign Up</a></p>
+    <!-- <ion-button (click)="login()">Login</ion-button> -->
+  </div>
+</ion-content>
