@@ -10,11 +10,13 @@ export function appInitializer(accountService: AccountService, storageService: S
             console.log("appInitializer calling refresh token");
             //attempt to refresh token on app start up to auto authenticate
             accountService.refreshToken()
-                .subscribe(res => {
-                    console.log("appInitializer refreshToken done");
-                }, err => {
-                    console.error("appInitializer refreshToken error", err);
-                    accountService.logout();
+                .subscribe({
+                    next: (res) => {
+                        console.log("appInitializer refreshToken done");
+                    }, error: (err) => {
+                        console.error("appInitializer refreshToken error", err);
+                        accountService.logout();
+                    }
                 })
                 .add(resolve);
         });

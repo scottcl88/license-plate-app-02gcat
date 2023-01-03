@@ -39,19 +39,20 @@ export class JwtInterceptor implements HttpInterceptor, OnInit, OnDestroy {
     }
 
     async handle(request: HttpRequest<any>, next: HttpHandler) {
+        console.log("Jwt intercept handle");
         let storageAccount = await this.storageService.getAccount();
         // add auth header with jwt if account is logged in and request is to the api url
-        const isLoggedIn = this.account && this.account.accessToken;
-        const isStorageLoggedIn = storageAccount && storageAccount.accessToken;
+        const isLoggedIn = this.account && this.account.token;
+        const isStorageLoggedIn = storageAccount && storageAccount.token;
         const isApiUrl = request.url.startsWith(environment.API_BASE_URL);
         if (isLoggedIn && isApiUrl) {
             request = request.clone({
-                setHeaders: { Authorization: `Bearer ${this.account?.accessToken}` }, withCredentials: true
+                setHeaders: { Authorization: `Bearer ${this.account?.token}` }, withCredentials: true
             });
         } else if (isStorageLoggedIn && isApiUrl) {
             //might be first time app is opened, accountService is null so use storage
             request = request.clone({
-                setHeaders: { Authorization: `Bearer ${storageAccount.accessToken}` }, withCredentials: true
+                setHeaders: { Authorization: `Bearer ${storageAccount.token}` }, withCredentials: true
             });
         }
         return next.handle(request).toPromise();

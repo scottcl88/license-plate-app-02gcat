@@ -381,6 +381,61 @@ export class GameClient extends ClientBase {
     }
 
     /**
+     * Get current game
+     * @return Success
+     */
+    getCurrent(httpContext?: HttpContext): Observable<GameModel> {
+        let url_ = this.baseUrl + "/api/game/get-current";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            context: httpContext,
+            headers: new HttpHeaders({
+                "Accept": "text/plain"
+            })
+        };
+
+        return _observableFrom(this.transformOptions(options_)).pipe(_observableMergeMap(transformedOptions_ => {
+            return this.http.request("get", url_, transformedOptions_);
+        })).pipe(_observableMergeMap((response_: any) => {
+            return this.transformResult(url_, response_, (r) => this.processGetCurrent(r as any));
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.transformResult(url_, response_, (r) => this.processGetCurrent(r as any));
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<GameModel>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<GameModel>;
+        }));
+    }
+
+    protected processGetCurrent(response: HttpResponseBase): Observable<GameModel> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = GameModel.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
      * Add license to game
      * @param body (optional) 
      * @return Success
@@ -993,71 +1048,6 @@ export class LicensePlatesClient extends ClientBase {
                 result200 = [] as any;
                 for (let item of resultData200)
                     result200!.push(LicensePlateModel.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
-            return _observableOf(result200);
-            }));
-        } else if (status !== 200 && status !== 204) {
-            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            }));
-        }
-        return _observableOf(null as any);
-    }
-
-    /**
-     * Get licensePlate documents by id
-     * @return Success
-     */
-    documents(id: number, httpContext?: HttpContext): Observable<DocumentModel[]> {
-        let url_ = this.baseUrl + "/api/licensePlates/documents/{id}";
-        if (id === undefined || id === null)
-            throw new Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_ : any = {
-            observe: "response",
-            responseType: "blob",
-            context: httpContext,
-            headers: new HttpHeaders({
-                "Accept": "text/plain"
-            })
-        };
-
-        return _observableFrom(this.transformOptions(options_)).pipe(_observableMergeMap(transformedOptions_ => {
-            return this.http.request("get", url_, transformedOptions_);
-        })).pipe(_observableMergeMap((response_: any) => {
-            return this.transformResult(url_, response_, (r) => this.processDocuments(r as any));
-        })).pipe(_observableCatch((response_: any) => {
-            if (response_ instanceof HttpResponseBase) {
-                try {
-                    return this.transformResult(url_, response_, (r) => this.processDocuments(r as any));
-                } catch (e) {
-                    return _observableThrow(e) as any as Observable<DocumentModel[]>;
-                }
-            } else
-                return _observableThrow(response_) as any as Observable<DocumentModel[]>;
-        }));
-    }
-
-    protected processDocuments(response: HttpResponseBase): Observable<DocumentModel[]> {
-        const status = response.status;
-        const responseBlob =
-            response instanceof HttpResponse ? response.body :
-            (response as any).error instanceof Blob ? (response as any).error : undefined;
-
-        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
-        if (status === 200) {
-            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(DocumentModel.fromJS(item));
             }
             else {
                 result200 = <any>null;
@@ -2829,17 +2819,79 @@ export interface IGameId {
     value?: number;
 }
 
+export class GameLicensePlateModel implements IGameLicensePlateModel {
+    createdDateTime!: Date;
+    modifiedDateTime?: Date | undefined;
+    deletedDateTime?: Date | undefined;
+    gameLicensePlateId?: number;
+    gameModel?: GameModel;
+    licensePlateModel?: LicensePlateModel;
+
+    constructor(data?: IGameLicensePlateModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.createdDateTime = _data["createdDateTime"] ? new Date(_data["createdDateTime"].toString()) : <any>undefined;
+            this.modifiedDateTime = _data["modifiedDateTime"] ? new Date(_data["modifiedDateTime"].toString()) : <any>undefined;
+            this.deletedDateTime = _data["deletedDateTime"] ? new Date(_data["deletedDateTime"].toString()) : <any>undefined;
+            this.gameLicensePlateId = _data["gameLicensePlateId"];
+            this.gameModel = _data["gameModel"] ? GameModel.fromJS(_data["gameModel"]) : <any>undefined;
+            this.licensePlateModel = _data["licensePlateModel"] ? LicensePlateModel.fromJS(_data["licensePlateModel"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): GameLicensePlateModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new GameLicensePlateModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["createdDateTime"] = this.createdDateTime ? this.createdDateTime.toISOString() : <any>undefined;
+        data["modifiedDateTime"] = this.modifiedDateTime ? this.modifiedDateTime.toISOString() : <any>undefined;
+        data["deletedDateTime"] = this.deletedDateTime ? this.deletedDateTime.toISOString() : <any>undefined;
+        data["gameLicensePlateId"] = this.gameLicensePlateId;
+        data["gameModel"] = this.gameModel ? this.gameModel.toJSON() : <any>undefined;
+        data["licensePlateModel"] = this.licensePlateModel ? this.licensePlateModel.toJSON() : <any>undefined;
+        return data;
+    }
+
+    clone(): GameLicensePlateModel {
+        const json = this.toJSON();
+        let result = new GameLicensePlateModel();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IGameLicensePlateModel {
+    createdDateTime: Date;
+    modifiedDateTime?: Date | undefined;
+    deletedDateTime?: Date | undefined;
+    gameLicensePlateId?: number;
+    gameModel?: GameModel;
+    licensePlateModel?: LicensePlateModel;
+}
+
 export class GameModel implements IGameModel {
     createdDateTime!: Date;
     modifiedDateTime?: Date | undefined;
     deletedDateTime?: Date | undefined;
-    createdBy?: UserModel;
-    modifiedBy?: UserModel;
-    deletedBy?: UserModel;
     gameId?: number;
     title?: string | undefined;
     description?: string | undefined;
-    licensePlates?: LicensePlateModel[] | undefined;
+    licensePlates?: GameLicensePlateModel[] | undefined;
+    startedDateTime?: Date | undefined;
+    finishedDateTime?: Date | undefined;
 
     constructor(data?: IGameModel) {
         if (data) {
@@ -2855,17 +2907,16 @@ export class GameModel implements IGameModel {
             this.createdDateTime = _data["createdDateTime"] ? new Date(_data["createdDateTime"].toString()) : <any>undefined;
             this.modifiedDateTime = _data["modifiedDateTime"] ? new Date(_data["modifiedDateTime"].toString()) : <any>undefined;
             this.deletedDateTime = _data["deletedDateTime"] ? new Date(_data["deletedDateTime"].toString()) : <any>undefined;
-            this.createdBy = _data["createdBy"] ? UserModel.fromJS(_data["createdBy"]) : <any>undefined;
-            this.modifiedBy = _data["modifiedBy"] ? UserModel.fromJS(_data["modifiedBy"]) : <any>undefined;
-            this.deletedBy = _data["deletedBy"] ? UserModel.fromJS(_data["deletedBy"]) : <any>undefined;
             this.gameId = _data["gameId"];
             this.title = _data["title"];
             this.description = _data["description"];
             if (Array.isArray(_data["licensePlates"])) {
                 this.licensePlates = [] as any;
                 for (let item of _data["licensePlates"])
-                    this.licensePlates!.push(LicensePlateModel.fromJS(item));
+                    this.licensePlates!.push(GameLicensePlateModel.fromJS(item));
             }
+            this.startedDateTime = _data["startedDateTime"] ? new Date(_data["startedDateTime"].toString()) : <any>undefined;
+            this.finishedDateTime = _data["finishedDateTime"] ? new Date(_data["finishedDateTime"].toString()) : <any>undefined;
         }
     }
 
@@ -2881,9 +2932,6 @@ export class GameModel implements IGameModel {
         data["createdDateTime"] = this.createdDateTime ? this.createdDateTime.toISOString() : <any>undefined;
         data["modifiedDateTime"] = this.modifiedDateTime ? this.modifiedDateTime.toISOString() : <any>undefined;
         data["deletedDateTime"] = this.deletedDateTime ? this.deletedDateTime.toISOString() : <any>undefined;
-        data["createdBy"] = this.createdBy ? this.createdBy.toJSON() : <any>undefined;
-        data["modifiedBy"] = this.modifiedBy ? this.modifiedBy.toJSON() : <any>undefined;
-        data["deletedBy"] = this.deletedBy ? this.deletedBy.toJSON() : <any>undefined;
         data["gameId"] = this.gameId;
         data["title"] = this.title;
         data["description"] = this.description;
@@ -2892,6 +2940,8 @@ export class GameModel implements IGameModel {
             for (let item of this.licensePlates)
                 data["licensePlates"].push(item.toJSON());
         }
+        data["startedDateTime"] = this.startedDateTime ? this.startedDateTime.toISOString() : <any>undefined;
+        data["finishedDateTime"] = this.finishedDateTime ? this.finishedDateTime.toISOString() : <any>undefined;
         return data;
     }
 
@@ -2907,13 +2957,12 @@ export interface IGameModel {
     createdDateTime: Date;
     modifiedDateTime?: Date | undefined;
     deletedDateTime?: Date | undefined;
-    createdBy?: UserModel;
-    modifiedBy?: UserModel;
-    deletedBy?: UserModel;
     gameId?: number;
     title?: string | undefined;
     description?: string | undefined;
-    licensePlates?: LicensePlateModel[] | undefined;
+    licensePlates?: GameLicensePlateModel[] | undefined;
+    startedDateTime?: Date | undefined;
+    finishedDateTime?: Date | undefined;
 }
 
 export class GenericResult implements IGenericResult {
@@ -3057,12 +3106,11 @@ export class LicensePlateModel implements ILicensePlateModel {
     createdDateTime!: Date;
     modifiedDateTime?: Date | undefined;
     deletedDateTime?: Date | undefined;
-    createdBy?: UserModel;
-    modifiedBy?: UserModel;
-    deletedBy?: UserModel;
     licensePlateId?: number;
     title?: string | undefined;
-    documents?: DocumentModel[] | undefined;
+    description?: string | undefined;
+    stateId?: number;
+    state?: StateModel;
 
     constructor(data?: ILicensePlateModel) {
         if (data) {
@@ -3078,16 +3126,11 @@ export class LicensePlateModel implements ILicensePlateModel {
             this.createdDateTime = _data["createdDateTime"] ? new Date(_data["createdDateTime"].toString()) : <any>undefined;
             this.modifiedDateTime = _data["modifiedDateTime"] ? new Date(_data["modifiedDateTime"].toString()) : <any>undefined;
             this.deletedDateTime = _data["deletedDateTime"] ? new Date(_data["deletedDateTime"].toString()) : <any>undefined;
-            this.createdBy = _data["createdBy"] ? UserModel.fromJS(_data["createdBy"]) : <any>undefined;
-            this.modifiedBy = _data["modifiedBy"] ? UserModel.fromJS(_data["modifiedBy"]) : <any>undefined;
-            this.deletedBy = _data["deletedBy"] ? UserModel.fromJS(_data["deletedBy"]) : <any>undefined;
             this.licensePlateId = _data["licensePlateId"];
             this.title = _data["title"];
-            if (Array.isArray(_data["documents"])) {
-                this.documents = [] as any;
-                for (let item of _data["documents"])
-                    this.documents!.push(DocumentModel.fromJS(item));
-            }
+            this.description = _data["description"];
+            this.stateId = _data["stateId"];
+            this.state = _data["state"] ? StateModel.fromJS(_data["state"]) : <any>undefined;
         }
     }
 
@@ -3103,16 +3146,11 @@ export class LicensePlateModel implements ILicensePlateModel {
         data["createdDateTime"] = this.createdDateTime ? this.createdDateTime.toISOString() : <any>undefined;
         data["modifiedDateTime"] = this.modifiedDateTime ? this.modifiedDateTime.toISOString() : <any>undefined;
         data["deletedDateTime"] = this.deletedDateTime ? this.deletedDateTime.toISOString() : <any>undefined;
-        data["createdBy"] = this.createdBy ? this.createdBy.toJSON() : <any>undefined;
-        data["modifiedBy"] = this.modifiedBy ? this.modifiedBy.toJSON() : <any>undefined;
-        data["deletedBy"] = this.deletedBy ? this.deletedBy.toJSON() : <any>undefined;
         data["licensePlateId"] = this.licensePlateId;
         data["title"] = this.title;
-        if (Array.isArray(this.documents)) {
-            data["documents"] = [];
-            for (let item of this.documents)
-                data["documents"].push(item.toJSON());
-        }
+        data["description"] = this.description;
+        data["stateId"] = this.stateId;
+        data["state"] = this.state ? this.state.toJSON() : <any>undefined;
         return data;
     }
 
@@ -3128,12 +3166,11 @@ export interface ILicensePlateModel {
     createdDateTime: Date;
     modifiedDateTime?: Date | undefined;
     deletedDateTime?: Date | undefined;
-    createdBy?: UserModel;
-    modifiedBy?: UserModel;
-    deletedBy?: UserModel;
     licensePlateId?: number;
     title?: string | undefined;
-    documents?: DocumentModel[] | undefined;
+    description?: string | undefined;
+    stateId?: number;
+    state?: StateModel;
 }
 
 export enum LoggerLevel {
@@ -3459,6 +3496,69 @@ export enum Role {
     User = "User",
     Editor = "Editor",
     Admin = "Admin",
+}
+
+export class StateModel implements IStateModel {
+    createdDateTime!: Date;
+    modifiedDateTime?: Date | undefined;
+    deletedDateTime?: Date | undefined;
+    stateId?: number;
+    name?: string | undefined;
+    abbreviation?: string | undefined;
+
+    constructor(data?: IStateModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.createdDateTime = _data["createdDateTime"] ? new Date(_data["createdDateTime"].toString()) : <any>undefined;
+            this.modifiedDateTime = _data["modifiedDateTime"] ? new Date(_data["modifiedDateTime"].toString()) : <any>undefined;
+            this.deletedDateTime = _data["deletedDateTime"] ? new Date(_data["deletedDateTime"].toString()) : <any>undefined;
+            this.stateId = _data["stateId"];
+            this.name = _data["name"];
+            this.abbreviation = _data["abbreviation"];
+        }
+    }
+
+    static fromJS(data: any): StateModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new StateModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["createdDateTime"] = this.createdDateTime ? this.createdDateTime.toISOString() : <any>undefined;
+        data["modifiedDateTime"] = this.modifiedDateTime ? this.modifiedDateTime.toISOString() : <any>undefined;
+        data["deletedDateTime"] = this.deletedDateTime ? this.deletedDateTime.toISOString() : <any>undefined;
+        data["stateId"] = this.stateId;
+        data["name"] = this.name;
+        data["abbreviation"] = this.abbreviation;
+        return data;
+    }
+
+    clone(): StateModel {
+        const json = this.toJSON();
+        let result = new StateModel();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IStateModel {
+    createdDateTime: Date;
+    modifiedDateTime?: Date | undefined;
+    deletedDateTime?: Date | undefined;
+    stateId?: number;
+    name?: string | undefined;
+    abbreviation?: string | undefined;
 }
 
 export class TimeSpan implements ITimeSpan {

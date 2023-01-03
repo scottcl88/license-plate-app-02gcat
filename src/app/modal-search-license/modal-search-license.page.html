@@ -1,0 +1,22 @@
+<!--
+Copyright 2022 Scott Lewis, All rights reserved.
+-->
+<app-header title="Add State" titleMarginLeft="0px" [menuButton]="false">
+  <ion-buttons slot="end">
+    <ion-button (click)="dismiss(false, null)">
+      <ion-icon name="close-sharp"></ion-icon>
+    </ion-button>
+  </ion-buttons>
+</app-header>
+
+<ion-content>
+  <p style="margin-left: 15px;">Select the state's license plate you found</p>
+  <ion-searchbar id="search" class="search" show-clear-button="focus" placeholder="Search" [autofocus]="true"
+    (ionChange)="searchOnChange($event)"></ion-searchbar>
+  <div style="height: 80vh; overflow-y: scroll;">
+    <ion-list style="margin-left: 10px; margin-right: 10px; margin-top: -5px;">
+      <ion-item button *ngFor="let lp of filteredLicensePlates"
+        (click)="dismiss(true, lp)">{{lp.state?.name}}</ion-item>
+    </ion-list>
+  </div>
+</ion-content>

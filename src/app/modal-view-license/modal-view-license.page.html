@@ -1,0 +1,20 @@
+<!--
+Copyright 2022 Scott Lewis, All rights reserved.
+-->
+<app-header title="View License Plate" titleMarginLeft="0px" [menuButton]="false">
+  <ion-buttons slot="end">
+    <ion-button (click)="dismiss(false)">
+      <ion-icon name="close-sharp"></ion-icon>
+    </ion-button>
+  </ion-buttons>
+</app-header>
+
+<ion-content>
+  <div id="container" style="text-align: center;">
+    <div style="margin-bottom: 30px;">
+      <h3>{{licensePlate?.state?.name}}</h3>
+      <p>Found on {{licensePlate?.createdDateTime | dfnsFormat: 'MMMM d \'at\' h:mm a'}}</p>
+    </div>
+    <ion-button (click)="dismiss(true)" color="danger">Remove state</ion-button>
+  </div>
+</ion-content>

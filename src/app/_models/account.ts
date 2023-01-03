@@ -5,7 +5,7 @@ export class Account {
     name: string;
     email: string;
     role: Role;
-    accessToken?: string;
+    token?: string;
     refreshToken?: string;
     isVerified: boolean;
     requestedAccess: boolean;

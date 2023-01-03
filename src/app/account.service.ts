@@ -50,7 +50,7 @@ export class AccountService {
 
     public get isAuthenticated(): boolean {
         const accountValue = this.accountSubject.value;
-        const isLoggedIn = accountValue && accountValue.accessToken;
+        const isLoggedIn = accountValue && accountValue.token;
         return isLoggedIn ? true : false;
     }
     // async getAccount(): Promise<Account> {
@@ -172,11 +172,11 @@ export class AccountService {
     private refreshTokenTimeout: string | number | NodeJS.Timeout | undefined;
 
     private startRefreshTokenTimer() {
-        if (!this.accountValue?.accessToken) {
+        if (!this.accountValue?.token) {
             return;
         }
         // parse json object from base64 encoded jwt token
-        const jwtToken = JSON.parse(atob(this.accountValue.accessToken.split('.')[1]));
+        const jwtToken = JSON.parse(atob(this.accountValue.token.split('.')[1]));
         // set a timeout to refresh the token a minute before it expires
         const expires = new Date(jwtToken.exp * 1000);
         const timeout = expires.getTime() - Date.now() - (60 * 1000);

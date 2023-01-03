@@ -29,7 +29,7 @@ export class ErrorInterceptor implements HttpInterceptor, OnInit, OnDestroy {
 
     intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         return next.handle(request).pipe(catchError(err => {
-            if ([401, 403].includes(err.status) && this.account && this.account.accessToken) {
+            if ([401, 403].includes(err.status) && this.account && this.account.token) {
                 // auto logout if 401 or 403 response returned from api
                 console.log("Error interceptor. Logging out");
                 this.accountService.logout();
