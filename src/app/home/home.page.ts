@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ModalController, PopoverController } from '@ionic/angular';
 import { CreateGameRequest, GameClient, GameId, GameModel, LicenseGameRequest, LicensePlateId, LicensePlateModel, LicensePlatesClient, StateModel } from 'src/api';
 import { environment } from 'src/environments/environment';
@@ -8,6 +8,9 @@ import { CoreUtilService } from '../core-utils';
 import { ModalSearchLicensePage } from '../modal-search-license/modal-search-license.page';
 import { ModalViewLicensePage } from '../modal-view-license/modal-view-license.page';
 import { es } from 'date-fns/locale';
+import { Subject, takeUntil } from 'rxjs';
+import { Account } from '../_models';
+import { AccountService } from '../account.service';
 
 @Component({
   selector: 'app-home',
@@ -25,16 +28,47 @@ export class HomePage implements OnInit {
   public filteredLicensePlates: LicensePlateModel[] = [];
 
   public currentGame: GameModel | null = null;
+  
+  public isAuthenticated: boolean = false;
+  private isLoading: boolean = false;
+  
+  private ngUnsubscribe = new Subject();
+  public account: Account | undefined | null;
 
   options = {
     addSuffix: true
   };
 
-  constructor(private activatedRoute: ActivatedRoute, private popoverController: PopoverController, private alertController: AlertController, private modalController: ModalController, private httpClient: HttpClient, private coreUtilService: CoreUtilService) { }
+  constructor(private activatedRoute: ActivatedRoute, 
+    private router: Router, private accountService: AccountService, private popoverController: PopoverController, private alertController: AlertController, private modalController: ModalController, private httpClient: HttpClient, private coreUtilService: CoreUtilService) { }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.availableStates = HomePage.STATES;
-    this.getLicensePlates();
+    // this.getLicensePlates();
+
+    this.accountService.account
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe(res => {
+        console.log("Profile checking isAuthenticated", res);
+        this.account = res;
+        this.isAuthenticated = (this.account && this.account?.token) ? true : false;
+      });
+    await this.coreUtilService.presentLoading();
+    this.isLoading = true;
+    // this.userAuth = this.account;
+
+    if (this.isAuthenticated) {
+      this.isLoading = true;
+      this.getLicensePlates();
+    } else {
+      this.coreUtilService.dismissLoading();
+      this.isLoading = false;
+      this.goToLogin();
+    }
+  }
+
+  goToLogin() {
+    this.router.navigate(['/login']);
   }
 
   async search() {

@@ -65,6 +65,10 @@ export class RegisterPage implements OnInit {
     console.log('Register ngOnInit:', this.token);
   }
 
+  backToLogin(){
+    this.router.navigate(['/login']);
+  }
+
   nameChanged(ev: any) {
     console.log("name changed: ", ev.detail.value, this.name);
     if (ev.detail.value != null) {

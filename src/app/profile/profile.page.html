@@ -1,0 +1,52 @@
+<!--
+Copyright 2022 Scott Lewis, All rights reserved.
+-->
+<app-header title="Profile">
+</app-header>
+<ion-content>
+  <div *ngIf="!isAuthenticated" class="text-center">
+    <p style="text-align: center;">Login for FREE to start playing!</p>
+    <br>
+    <ion-item button (click)="goToLogin()">
+      <ion-label color="success">
+        Login
+      </ion-label>
+      <ion-icon name="log-out-outline" style="font-size: 24px;height: 48px;"></ion-icon>
+    </ion-item>
+  </div>
+  <div *ngIf="isAuthenticated">
+    <div [class]="contentClass">
+      <ion-item lines="none">
+        <div style="width: 100% !important; justify-content: space-between; text-align: center;">{{this.email}}
+          <span><b></b></span>
+        </div>
+      </ion-item>
+      <ion-item-divider></ion-item-divider>
+      <ion-item lines="inset">
+        <ion-label>Name</ion-label>
+        <ion-input type="text" [value]="name" (ionChange)="nameChanged($event)" autofocus="true" required>
+        </ion-input>
+      </ion-item>
+      <ion-item button (click)="saveUser()" [disabled]="!isDirty">
+        <ion-label color="success">
+          Save
+        </ion-label>
+        <ion-icon name="save-outline" style="font-size: 24px;height: 48px;"></ion-icon>
+      </ion-item>
+      <ion-item-divider></ion-item-divider>
+      <ion-item button (click)="confirmLogout()">
+        <ion-label color="secondary">
+          Log out
+        </ion-label>
+        <ion-icon name="log-out-outline" style="font-size: 24px;height: 48px;"></ion-icon>
+      </ion-item>
+      <ion-item-divider></ion-item-divider>
+      <ion-item button (click)="confirmDelete()">
+        <ion-label color="danger">
+          Delete Account
+        </ion-label>
+        <ion-icon name="trash-outline" style="font-size: 24px;height: 48px;"></ion-icon>
+      </ion-item>
+    </div>
+  </div>
+</ion-content>

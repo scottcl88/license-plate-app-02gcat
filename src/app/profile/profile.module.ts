@@ -7,20 +7,21 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
 
-// import { ModalRatingRoutingModule } from './results-routing.module';
+import { ProfilePageRoutingModule } from './profile-routing.module';
 
-import { ModalForgotPasswordPage } from './modal-forgot-password.page';
+import { ProfilePage } from './profile.page';
 import { HeaderModule } from '../header/header.module';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
-    IonicModule,
-    HeaderModule,
-    ReactiveFormsModule
+    IonicModule,    
+    ReactiveFormsModule,
+    ProfilePageRoutingModule,
+    HeaderModule
   ],
-  declarations: [ModalForgotPasswordPage],
+  declarations: [ProfilePage],
   schemas: [ CUSTOM_ELEMENTS_SCHEMA ]
 })
-export class ModalForgotPasswordModule {}
+export class ProfilePageModule {}

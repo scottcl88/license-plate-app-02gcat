@@ -1,0 +1,22 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>History</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div id="container">
+
+      <div style="height: calc(90vh); overflow-y: scroll;">
+        <ion-card *ngFor="let game of this.games">
+          <ion-card-header>
+            <ion-card-title>{{game?.licensePlates?.length}} states in {{game.startedDateTime | dfnsFormatDistanceStrict : game.finishedDateTime}}</ion-card-title>
+            <ion-card-content>Started {{game.startedDateTime | dfnsFormat: 'MMMM d \'at\' h:mm a'}}<br>Finished {{game.finishedDateTime | dfnsFormat: 'MMMM d \'at\' h:mm a'}}</ion-card-content>
+          </ion-card-header>
+        </ion-card>
+      </div>
+    </div>
+</ion-content>

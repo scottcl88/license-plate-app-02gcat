@@ -5,7 +5,7 @@ Copyright 2022 Scott Lewis, All rights reserved.
 </app-header>
 <ion-content>
   <div id="container" style="margin-left: 5px; margin-right: 5px;">
-    <p style="margin-top: 15px;">Sign Up for License Plate App</p><br>
+    <p style="margin-top: 15px;">Sign Up for FREE to start playing!</p><br>
     <ion-text color="danger" style="font-size: 15px; font-weight: bold;" *ngIf="showErrors">{{errorMessage}}</ion-text>
 
     <form [formGroup]="registerForm" action="">
@@ -48,18 +48,27 @@ Copyright 2022 Scott Lewis, All rights reserved.
           Confirm Password must match.
         </ion-text>
       </ion-item>
-      <ion-chip (click)="register()" style="background: var(--ion-color-success);margin-top: 10px;padding: 20px;"
-        class="text-center common-border">
+      <ion-item button (click)="register()">
+        <ion-label color="success">Sign Up
+        </ion-label>
         <span *ngIf="isSaving">
-          <ion-spinner name="crescent" style="font-size: 20px;"></ion-spinner>
+          <ion-icon name="crescent" style="font-size: 24px;height: 48px;"></ion-icon>
         </span>
         <span *ngIf="!isSaving">
-          <ion-icon name="log-in-outline" style="font-size: 20px;"></ion-icon>
+          <ion-icon name="log-in-outline" style="font-size: 24px;height: 48px;"></ion-icon>
         </span>
-        <span style="margin-left: 10px; font-size: 20px;">Sign Up
-        </span>
-      </ion-chip>
+      </ion-item>
     </form>
-    <!-- <ion-button (click)="login()">Login</ion-button> -->
+    <ion-item-divider></ion-item-divider>
+    <ion-item button (click)="backToLogin()">
+      <ion-label color="secondary"><ion-text style="margin-right: 5px;">Already have an account? Log In</ion-text>
+      </ion-label>
+      <span *ngIf="isSaving">
+        <ion-icon name="crescent" style="font-size: 24px;height: 48px;"></ion-icon>
+      </span>
+      <span *ngIf="!isSaving">
+        <ion-icon name="log-in-outline" style="font-size: 24px;height: 48px;"></ion-icon>
+      </span>
+    </ion-item>
   </div>
 </ion-content>

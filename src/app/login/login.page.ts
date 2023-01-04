@@ -11,7 +11,7 @@ import { HttpClient } from '@angular/common/http';
 import { UserClient } from 'src/api';
 import { StorageService } from '../storage.service';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { PopoverController, ToastController } from '@ionic/angular';
+import { ModalController, PopoverController, ToastController } from '@ionic/angular';
 // import { AuthService } from '@auth0/auth0-angular';
 import { AccountService } from '../account.service';
 import { ModalForgotPasswordPage } from '../modal-forgot-password/modal-forgot-password.page';
@@ -45,7 +45,7 @@ export class LoginPage implements OnInit {
   @ViewChild('emailId', { static: false })
   ionInput!: { setFocus: () => void; };
 
-  constructor(public formBuilder: FormBuilder, private route: ActivatedRoute, private coreUtilService: CoreUtilService, private storageService: StorageService, private router: Router,
+  constructor(public formBuilder: FormBuilder, private modalController: ModalController, private route: ActivatedRoute, private coreUtilService: CoreUtilService, private storageService: StorageService, private router: Router,
     private httpClient: HttpClient, private accountService: AccountService, private popoverController: PopoverController) { }
 
   get errorCtr() {
@@ -56,12 +56,9 @@ export class LoginPage implements OnInit {
     this.verified = false;
 
     this.loginForm = this.formBuilder.group({
-      email: new FormControl("", [Validators.required]),
+      email: new FormControl("", [Validators.required, Validators.email]),
       password: new FormControl("", [Validators.required]),
     });
-    // this.loginForm = new FormGroup({
-    //   phoneNumber: new FormControl(this.phoneNumber, [Validators.required]),
-    // });
 
     this.verificationForm = new FormGroup({
       verificationCode: new FormControl(this.verificationCode, [Validators.required]),
@@ -82,18 +79,6 @@ export class LoginPage implements OnInit {
         }
       }
       );
-    // this.authService.isAuthenticated$.subscribe((res) => {
-    //   console.log('Auth Service isAuthenticated: ', res);
-    //   if (!res) {
-    //     // this.authService
-    //     //   .buildAuthorizeUrl()
-    //     //   .pipe(mergeMap((url) => Browser.open({ url, windowName: '_self' })))
-    //     //   .subscribe();
-    //   } else {
-    //     this.storageService.setLoggedIn();
-    //     this.router.navigate(['/dashboard']);
-    //   }
-    // });
 
     this.ionInput?.setFocus();
   }
@@ -138,10 +123,6 @@ export class LoginPage implements OnInit {
       this.showErrors = true;
       this.submitted = false;
     });
-    // this.authService
-    //   .buildAuthorizeUrl()
-    //   .pipe(mergeMap((url) => Browser.open({ url, windowName: '_self' })))
-    //   .subscribe();
   }
   register() {
     this.router.navigate(['/register']);
@@ -177,23 +158,5 @@ export class LoginPage implements OnInit {
       this.errorMessage = err;
       this.showErrors = true;
     });
-    // this.authService
-    //   .buildAuthorizeUrl()
-    //   .pipe(mergeMap((url) => Browser.open({ url, windowName: '_self' })))
-    //   .subscribe();
-  }
-  async onSignInSubmit() {
-    // this.authService.isAuthenticated$.subscribe((res) => {
-    //   console.log('Auth Service isAuthenticated: ', res);
-    //   if (!res) {
-    //     this.authService
-    //       .buildAuthorizeUrl()
-    //       .pipe(mergeMap((url) => Browser.open({ url, windowName: '_self' })))
-    //       .subscribe();
-    //   } else {
-    //     this.storageService.setLoggedIn();
-    //   }
-    // });
-    // return;
   }
 }
