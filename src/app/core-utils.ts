@@ -20,9 +20,9 @@ export class CoreUtilService {
   }
   async presentLoading() {
     this.loadingElement = await this.loadingController.create({
-      message: '<ion-img src="/assets/waveLoader.svg" alt="loading..."></ion-img>',
-      cssClass: 'modal-transparency',
-      spinner: null,
+      message: 'Loading',
+      cssClass: '',
+      // spinner: null,
       showBackdrop: true
     });
     await this.loadingElement.present();

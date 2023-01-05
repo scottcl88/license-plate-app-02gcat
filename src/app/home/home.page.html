@@ -4,59 +4,49 @@
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
     <ion-title>Home</ion-title>
-
-    <!-- <ion-icon slot="end" name="ellipsis-vertical-outline" id="click-trigger"></ion-icon> -->
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <!-- <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Home</ion-title>
-      
-    <ion-icon name="ellipsis-vertical-outline" id="click-trigger"></ion-icon>
-    </ion-toolbar>
-  </ion-header> -->
-
   <div id="container">
-    <!-- <ion-button id="click-trigger"><ion-icon name="ellipsis-vertical-outline"></ion-icon></ion-button> -->
-
     <div *ngIf="currentGame == null">
       <ion-button (click)="startNewGame()">Start new game?</ion-button>
     </div>
     <div *ngIf="currentGame != null">
-      <div style="margin-bottom: 20px;">
-        <h3>Current Game
-          <ion-icon name="ellipsis-vertical-outline" id="click-trigger"></ion-icon>
-        </h3>
-        <p>Started {{this.currentGame?.startedDateTime | dfnsFormatDistanceToNow: options }}</p>
+      <div *ngIf="this.currentLicensePlates.length >= this.allLicensePlates.length">
+        <h2>Congratulations!</h2>
+        <h5>You found all the states!</h5>
+        <ion-button (click)="startNewGame()" style="margin-bottom: 30px;">Start new game?</ion-button>
       </div>
-
-      <ion-popover trigger="click-trigger" triggerAction="click">
-        <ng-template>
-          <ion-list>
-            <ion-item (click)="startNewGame()">New Game</ion-item>
-          </ion-list>
-        </ng-template>
-      </ion-popover>
-      <div *ngIf="this.currentLicensePlates.length <= 0">
-        <ion-button (click)="search()">Add Your First State</ion-button>
-        <h5>{{this.allLicensePlates.length}} Total States To Find</h5>
+      <div *ngIf="this.currentLicensePlates.length < this.allLicensePlates.length">
+        <div style="margin-bottom: 20px;">
+          <h3>Current Game
+            <ion-icon name="ellipsis-vertical-outline" id="click-trigger"></ion-icon>
+          </h3>
+          <p>Started {{this.currentGame?.startedDateTime | dfnsFormatDistanceToNow: options }}</p>
+        </div>
+        <ion-popover trigger="click-trigger" triggerAction="click">
+          <ng-template>
+            <ion-list>
+              <ion-item (click)="startNewGame()">New Game</ion-item>
+            </ion-list>
+          </ng-template>
+        </ion-popover>
+        <div *ngIf="this.currentLicensePlates.length <= 0">
+          <ion-button (click)="search()">Add Your First State</ion-button>
+          <h5>{{this.allLicensePlates.length}} Total States To Find</h5>
+        </div>
+        <div *ngIf="this.currentLicensePlates.length > 0">
+          <ion-button (click)="search()">Add State</ion-button>
+          <h5 style="text-align: center; ">Found {{this.currentLicensePlates.length}} of
+            {{this.allLicensePlates.length}} States</h5>
+        </div>
       </div>
-      <div *ngIf="this.currentLicensePlates.length > 0">
-        <ion-button (click)="search()">Add State</ion-button>
-        <h5 style="text-align: start; margin-left: 15px;">Found {{this.currentLicensePlates.length}} of
-          {{this.allLicensePlates.length}} States</h5>
-      </div>
-      <div style="height: calc(50vh); overflow-y: scroll;">
-        <ion-card *ngFor="let licensePlate of this.currentLicensePlates" (click)="view(licensePlate)">
-          <ion-card-header>
-            <ion-card-title>{{licensePlate.state?.name}}</ion-card-title>
-          </ion-card-header>
-        </ion-card>
+      <div style="height: calc(60vh); overflow-y: scroll;">
+        <div *ngFor="let glp of this.currentLicensePlates" (click)="view(glp)">
+          <img [src]="'data:image/png;base64,'+glp?.licensePlate?.image" [alt]="glp?.licensePlate?.state?.name" />
+        </div>
       </div>
     </div>
   </div>
-
-
 </ion-content>

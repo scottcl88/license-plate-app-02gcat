@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ModalController, PopoverController } from '@ionic/angular';
-import { CreateGameRequest, GameClient, GameId, GameModel, LicenseGameRequest, LicensePlateId, LicensePlateModel, LicensePlatesClient, StateModel } from 'src/api';
+import { CreateGameRequest, GameClient, GameId, GameLicensePlateModel, GameModel, LicenseGameRequest, LicensePlateId, LicensePlateModel, LicensePlatesClient, StateModel } from 'src/api';
 import { environment } from 'src/environments/environment';
 import { CoreUtilService } from '../core-utils';
 import { ModalSearchLicensePage } from '../modal-search-license/modal-search-license.page';
@@ -24,7 +24,7 @@ export class HomePage implements OnInit {
 
   public allLicensePlates: LicensePlateModel[] = [];
   public availableLicensePlates: LicensePlateModel[] = [];
-  public currentLicensePlates: LicensePlateModel[] = [];
+  public currentLicensePlates: GameLicensePlateModel[] = [];
   public filteredLicensePlates: LicensePlateModel[] = [];
 
   public currentGame: GameModel | null = null;
@@ -87,18 +87,18 @@ export class HomePage implements OnInit {
     }
   }
 
-  async view(lp: LicensePlateModel) {
+  async view(glp: GameLicensePlateModel) {
     const modal = await this.modalController.create({
       component: ModalViewLicensePage,
       componentProps: {
-        licensePlate: lp,
+        glp: glp,
       },
     });
     modal.present();
     const { data } = await modal.onDidDismiss();
     console.log('Select Modal Dismissed: ', data);
     if (data && data.removed) {
-      this.removeLicensePlateFromGame(lp);
+      this.removeLicensePlateFromGame(glp);
     }
   }
 
@@ -109,6 +109,7 @@ export class HomePage implements OnInit {
         console.log("Successfully got current game");
         this.currentGame = res ?? new GameModel();
         this.updateLicensePlateLists();
+        this.coreUtilService.dismissLoading();
       }, error: (err) => {
         console.error("Start new game error: ", err);
         this.coreUtilService.presentToastError();
@@ -219,21 +220,21 @@ export class HomePage implements OnInit {
   }
 
   updateLicensePlateLists() {
-    let filteredLps: LicensePlateModel[] = [];
+    let filteredLps: GameLicensePlateModel[] = [];
     this.currentGame?.licensePlates?.forEach(lp => {
-      let foundLp = this.allLicensePlates.find(x => x.licensePlateId == lp.licensePlateModel?.licensePlateId);
+      let foundLp = this.allLicensePlates.find(x => x.licensePlateId == lp.licensePlate?.licensePlateId);
       if (foundLp) {
         filteredLps.push(foundLp);
       }
-      let availableLpIndex = this.availableLicensePlates.findIndex(x => x.licensePlateId == lp.licensePlateModel?.licensePlateId);
+      let availableLpIndex = this.availableLicensePlates.findIndex(x => x.licensePlateId == lp.licensePlate?.licensePlateId);
       if (availableLpIndex >= 0) {
         this.availableLicensePlates.splice(availableLpIndex, 1);
       }
-      let filteredLpIndex = this.filteredLicensePlates.findIndex(x => x.licensePlateId == lp.licensePlateModel?.licensePlateId);
+      let filteredLpIndex = this.filteredLicensePlates.findIndex(x => x.licensePlateId == lp.licensePlate?.licensePlateId);
       if (filteredLpIndex >= 0) {
         this.filteredLicensePlates.splice(filteredLpIndex, 1);
       }
     });
-    this.currentLicensePlates = filteredLps;
+    this.currentLicensePlates = this.currentGame?.licensePlates ?? [];
   }
 }

@@ -13,10 +13,9 @@ Copyright 2022 Scott Lewis, All rights reserved.
   <p style="margin-left: 15px;">Select the state's license plate you found</p>
   <ion-searchbar id="search" class="search" show-clear-button="focus" placeholder="Search" [autofocus]="true"
     (ionChange)="searchOnChange($event)"></ion-searchbar>
-  <div style="height: 80vh; overflow-y: scroll;">
-    <ion-list style="margin-left: 10px; margin-right: 10px; margin-top: -5px;">
-      <ion-item button *ngFor="let lp of filteredLicensePlates"
-        (click)="dismiss(true, lp)">{{lp.state?.name}}</ion-item>
-    </ion-list>
+  <div style="height: 80vh; overflow-y: scroll;" style="margin-left: auto; margin-right: auto; width: fit-content; margin-bottom: 15px;">
+    <div button *ngFor="let lp of filteredLicensePlates" (click)="dismiss(true, lp)" style="margin-bottom: 10px;">
+      <img [src]="'data:image/png;base64,'+lp?.image"  [alt]="lp?.state?.name" />
+    </div>
   </div>
 </ion-content>

@@ -219,6 +219,73 @@ export class DocumentsClient extends ClientBase {
         }
         return _observableOf(null as any);
     }
+
+    /**
+     * @param licensePlateId (optional) 
+     * @param file (optional) 
+     * @return Success
+     */
+    addLicensePlateImage(licensePlateId: number | undefined, file: FileParameter | undefined, httpContext?: HttpContext): Observable<UploadResult> {
+        let url_ = this.baseUrl + "/api/documents/add-license-plate-image?";
+        if (licensePlateId === null)
+            throw new Error("The parameter 'licensePlateId' cannot be null.");
+        else if (licensePlateId !== undefined)
+            url_ += "licensePlateId=" + encodeURIComponent("" + licensePlateId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (file === null || file === undefined)
+            throw new Error("The parameter 'file' cannot be null.");
+        else
+            content_.append("file", file.data, file.fileName ? file.fileName : "file");
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            context: httpContext,
+            headers: new HttpHeaders({
+                "Accept": "text/plain"
+            })
+        };
+
+        return _observableFrom(this.transformOptions(options_)).pipe(_observableMergeMap(transformedOptions_ => {
+            return this.http.request("post", url_, transformedOptions_);
+        })).pipe(_observableMergeMap((response_: any) => {
+            return this.transformResult(url_, response_, (r) => this.processAddLicensePlateImage(r as any));
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.transformResult(url_, response_, (r) => this.processAddLicensePlateImage(r as any));
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<UploadResult>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<UploadResult>;
+        }));
+    }
+
+    protected processAddLicensePlateImage(response: HttpResponseBase): Observable<UploadResult> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = UploadResult.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
 }
 
 @Injectable()
@@ -1314,6 +1381,70 @@ export class LogClient extends ClientBase {
                 result200 = resultData200 !== undefined ? resultData200 : <any>null;
     
             return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+}
+
+@Injectable()
+export class SeedingClient extends ClientBase {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
+        super();
+        this.http = http;
+        this.baseUrl = baseUrl !== undefined && baseUrl !== null ? baseUrl : "";
+    }
+
+    /**
+     * Seed database
+     * @return Success
+     */
+    seed(httpContext?: HttpContext): Observable<void> {
+        let url_ = this.baseUrl + "/api/seeding/seed";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            context: httpContext,
+            headers: new HttpHeaders({
+            })
+        };
+
+        return _observableFrom(this.transformOptions(options_)).pipe(_observableMergeMap(transformedOptions_ => {
+            return this.http.request("get", url_, transformedOptions_);
+        })).pipe(_observableMergeMap((response_: any) => {
+            return this.transformResult(url_, response_, (r) => this.processSeed(r as any));
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.transformResult(url_, response_, (r) => this.processSeed(r as any));
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<void>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<void>;
+        }));
+    }
+
+    protected processSeed(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return _observableOf(null as any);
             }));
         } else if (status !== 200 && status !== 204) {
             return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
@@ -2940,8 +3071,8 @@ export class GameLicensePlateModel implements IGameLicensePlateModel {
     modifiedDateTime?: Date | undefined;
     deletedDateTime?: Date | undefined;
     gameLicensePlateId?: number;
-    gameModel?: GameModel;
-    licensePlateModel?: LicensePlateModel;
+    game?: GameModel;
+    licensePlate?: LicensePlateModel;
 
     constructor(data?: IGameLicensePlateModel) {
         if (data) {
@@ -2958,8 +3089,8 @@ export class GameLicensePlateModel implements IGameLicensePlateModel {
             this.modifiedDateTime = _data["modifiedDateTime"] ? new Date(_data["modifiedDateTime"].toString()) : <any>undefined;
             this.deletedDateTime = _data["deletedDateTime"] ? new Date(_data["deletedDateTime"].toString()) : <any>undefined;
             this.gameLicensePlateId = _data["gameLicensePlateId"];
-            this.gameModel = _data["gameModel"] ? GameModel.fromJS(_data["gameModel"]) : <any>undefined;
-            this.licensePlateModel = _data["licensePlateModel"] ? LicensePlateModel.fromJS(_data["licensePlateModel"]) : <any>undefined;
+            this.game = _data["game"] ? GameModel.fromJS(_data["game"]) : <any>undefined;
+            this.licensePlate = _data["licensePlate"] ? LicensePlateModel.fromJS(_data["licensePlate"]) : <any>undefined;
         }
     }
 
@@ -2976,8 +3107,8 @@ export class GameLicensePlateModel implements IGameLicensePlateModel {
         data["modifiedDateTime"] = this.modifiedDateTime ? this.modifiedDateTime.toISOString() : <any>undefined;
         data["deletedDateTime"] = this.deletedDateTime ? this.deletedDateTime.toISOString() : <any>undefined;
         data["gameLicensePlateId"] = this.gameLicensePlateId;
-        data["gameModel"] = this.gameModel ? this.gameModel.toJSON() : <any>undefined;
-        data["licensePlateModel"] = this.licensePlateModel ? this.licensePlateModel.toJSON() : <any>undefined;
+        data["game"] = this.game ? this.game.toJSON() : <any>undefined;
+        data["licensePlate"] = this.licensePlate ? this.licensePlate.toJSON() : <any>undefined;
         return data;
     }
 
@@ -2994,8 +3125,8 @@ export interface IGameLicensePlateModel {
     modifiedDateTime?: Date | undefined;
     deletedDateTime?: Date | undefined;
     gameLicensePlateId?: number;
-    gameModel?: GameModel;
-    licensePlateModel?: LicensePlateModel;
+    game?: GameModel;
+    licensePlate?: LicensePlateModel;
 }
 
 export class GameModel implements IGameModel {
@@ -3225,7 +3356,7 @@ export class LicensePlateModel implements ILicensePlateModel {
     licensePlateId?: number;
     title?: string | undefined;
     description?: string | undefined;
-    stateId?: number;
+    image?: string | undefined;
     state?: StateModel;
 
     constructor(data?: ILicensePlateModel) {
@@ -3245,7 +3376,7 @@ export class LicensePlateModel implements ILicensePlateModel {
             this.licensePlateId = _data["licensePlateId"];
             this.title = _data["title"];
             this.description = _data["description"];
-            this.stateId = _data["stateId"];
+            this.image = _data["image"];
             this.state = _data["state"] ? StateModel.fromJS(_data["state"]) : <any>undefined;
         }
     }
@@ -3265,7 +3396,7 @@ export class LicensePlateModel implements ILicensePlateModel {
         data["licensePlateId"] = this.licensePlateId;
         data["title"] = this.title;
         data["description"] = this.description;
-        data["stateId"] = this.stateId;
+        data["image"] = this.image;
         data["state"] = this.state ? this.state.toJSON() : <any>undefined;
         return data;
     }
@@ -3285,7 +3416,7 @@ export interface ILicensePlateModel {
     licensePlateId?: number;
     title?: string | undefined;
     description?: string | undefined;
-    stateId?: number;
+    image?: string | undefined;
     state?: StateModel;
 }
 

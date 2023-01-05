@@ -29,12 +29,12 @@ export class ModalSearchLicensePage implements OnInit {
   }
 
   searchOnChange(e: any) {
-    let text = e.detail.value;
+    let text = e.detail.value.toLocaleLowerCase();
     console.log("searchOnChange: ", text);
     if (text) {
-      this.filteredLicensePlates = this.availableLicensePlates.filter(x => x.state?.name?.toLowerCase()?.startsWith(text.toLowerCase()));
+      this.filteredLicensePlates = this.availableLicensePlates.filter(x => x.state?.name?.toLowerCase()?.startsWith(text) || x.state?.abbreviation?.toLocaleLowerCase() == text);
       if (this.filteredLicensePlates.length <= 0) {
-        this.filteredLicensePlates = this.availableLicensePlates.filter(x => x.state?.name?.toLowerCase()?.includes(text.toLowerCase()));
+        this.filteredLicensePlates = this.availableLicensePlates.filter(x => x.state?.name?.toLowerCase()?.includes(text));
       }
     } else {
       this.filteredLicensePlates = this.availableLicensePlates;

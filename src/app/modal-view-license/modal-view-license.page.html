@@ -12,8 +12,9 @@ Copyright 2022 Scott Lewis, All rights reserved.
 <ion-content>
   <div id="container" style="text-align: center;">
     <div style="margin-bottom: 30px;">
-      <h3>{{licensePlate?.state?.name}}</h3>
-      <p>Found on {{licensePlate?.createdDateTime | dfnsFormat: 'MMMM d \'at\' h:mm a'}}</p>
+      <h3>{{glp?.licensePlate?.state?.name}}</h3>
+      <img [src]="'data:image/png;base64,'+glp?.licensePlate?.image"  [alt]="glp?.licensePlate?.state?.name" />
+      <p>Found on {{glp?.createdDateTime | dfnsFormat: 'MMMM d \'at\' h:mm a'}}</p>
     </div>
     <ion-button (click)="dismiss(true)" color="danger">Remove state</ion-button>
   </div>

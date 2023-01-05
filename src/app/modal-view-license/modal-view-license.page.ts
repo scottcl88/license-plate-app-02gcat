@@ -4,7 +4,7 @@ Copyright 2022 Scott Lewis, All rights reserved.
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { IonSearchbar, ModalController, PopoverController, ToastController } from '@ionic/angular';
 import { NGXLogger } from 'ngx-logger';
-import { LicensePlateModel } from 'src/api';
+import { GameLicensePlateModel, LicensePlateModel } from 'src/api';
 
 @Component({
   selector: 'app-modal-view-license',
@@ -15,7 +15,7 @@ export class ModalViewLicensePage implements OnInit {
 
   @ViewChild(IonSearchbar) searchBar: IonSearchbar;
 
-  public licensePlate: LicensePlateModel;
+  public glp: GameLicensePlateModel;
 
   constructor(private logger: NGXLogger, private modalController: ModalController, private popoverController: PopoverController, public toastController: ToastController) {
   }
