@@ -1,6 +1,6 @@
 {
-  "appId": "io.ionic.starter",
-  "appName": "LicensePlateApp",
+  "appId": "com.lewis.cargame",
+  "appName": "Spot That Plate",
   "webDir": "www",
   "bundledWebRuntime": false
 }

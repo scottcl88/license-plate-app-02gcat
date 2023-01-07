@@ -1,8 +1,8 @@
 {
-  "name": "license-plate-app",
+  "name": "spot-that-plate",
   "version": "0.0.1",
   "author": "Scott Lewis",
-  "homepage": "https://ionicframework.com/",
+  "homepage": "https://scottcl.com/",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
