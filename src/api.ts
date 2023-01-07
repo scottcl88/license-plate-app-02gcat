@@ -1771,6 +1771,124 @@ export class UserClient extends ClientBase {
      * @param body (optional) 
      * @return Success
      */
+    authenticateByDevice(body: AuthenticateByDeviceRequest | undefined, httpContext?: HttpContext): Observable<AuthenticateResponse> {
+        let url_ = this.baseUrl + "/api/user/authenticate-by-device";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            context: httpContext,
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
+            })
+        };
+
+        return _observableFrom(this.transformOptions(options_)).pipe(_observableMergeMap(transformedOptions_ => {
+            return this.http.request("post", url_, transformedOptions_);
+        })).pipe(_observableMergeMap((response_: any) => {
+            return this.transformResult(url_, response_, (r) => this.processAuthenticateByDevice(r as any));
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.transformResult(url_, response_, (r) => this.processAuthenticateByDevice(r as any));
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<AuthenticateResponse>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<AuthenticateResponse>;
+        }));
+    }
+
+    protected processAuthenticateByDevice(response: HttpResponseBase): Observable<AuthenticateResponse> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AuthenticateResponse.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @param deviceId (optional) 
+     * @return Success
+     */
+    generateSecret(deviceId: string | undefined, httpContext?: HttpContext): Observable<SecretResponse> {
+        let url_ = this.baseUrl + "/api/user/generate-secret?";
+        if (deviceId === null)
+            throw new Error("The parameter 'deviceId' cannot be null.");
+        else if (deviceId !== undefined)
+            url_ += "deviceId=" + encodeURIComponent("" + deviceId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            context: httpContext,
+            headers: new HttpHeaders({
+                "Accept": "text/plain"
+            })
+        };
+
+        return _observableFrom(this.transformOptions(options_)).pipe(_observableMergeMap(transformedOptions_ => {
+            return this.http.request("post", url_, transformedOptions_);
+        })).pipe(_observableMergeMap((response_: any) => {
+            return this.transformResult(url_, response_, (r) => this.processGenerateSecret(r as any));
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.transformResult(url_, response_, (r) => this.processGenerateSecret(r as any));
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<SecretResponse>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<SecretResponse>;
+        }));
+    }
+
+    protected processGenerateSecret(response: HttpResponseBase): Observable<SecretResponse> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = SecretResponse.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return Success
+     */
     refreshToken(body: RefreshTokenRequest | undefined, httpContext?: HttpContext): Observable<void> {
         let url_ = this.baseUrl + "/api/user/refresh-token";
         url_ = url_.replace(/[?&]$/, "");
@@ -2570,6 +2688,53 @@ export class UserClient extends ClientBase {
     }
 }
 
+export class AuthenticateByDeviceRequest implements IAuthenticateByDeviceRequest {
+    deviceId!: string;
+    secret!: string;
+
+    constructor(data?: IAuthenticateByDeviceRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.deviceId = _data["deviceId"];
+            this.secret = _data["secret"];
+        }
+    }
+
+    static fromJS(data: any): AuthenticateByDeviceRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new AuthenticateByDeviceRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["deviceId"] = this.deviceId;
+        data["secret"] = this.secret;
+        return data;
+    }
+
+    clone(): AuthenticateByDeviceRequest {
+        const json = this.toJSON();
+        let result = new AuthenticateByDeviceRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IAuthenticateByDeviceRequest {
+    deviceId: string;
+    secret: string;
+}
+
 export class AuthenticateRequest implements IAuthenticateRequest {
     email!: string;
     password!: string;
@@ -3071,7 +3236,6 @@ export class GameLicensePlateModel implements IGameLicensePlateModel {
     modifiedDateTime?: Date | undefined;
     deletedDateTime?: Date | undefined;
     gameLicensePlateId?: number;
-    game?: GameModel;
     licensePlate?: LicensePlateModel;
 
     constructor(data?: IGameLicensePlateModel) {
@@ -3089,7 +3253,6 @@ export class GameLicensePlateModel implements IGameLicensePlateModel {
             this.modifiedDateTime = _data["modifiedDateTime"] ? new Date(_data["modifiedDateTime"].toString()) : <any>undefined;
             this.deletedDateTime = _data["deletedDateTime"] ? new Date(_data["deletedDateTime"].toString()) : <any>undefined;
             this.gameLicensePlateId = _data["gameLicensePlateId"];
-            this.game = _data["game"] ? GameModel.fromJS(_data["game"]) : <any>undefined;
             this.licensePlate = _data["licensePlate"] ? LicensePlateModel.fromJS(_data["licensePlate"]) : <any>undefined;
         }
     }
@@ -3107,7 +3270,6 @@ export class GameLicensePlateModel implements IGameLicensePlateModel {
         data["modifiedDateTime"] = this.modifiedDateTime ? this.modifiedDateTime.toISOString() : <any>undefined;
         data["deletedDateTime"] = this.deletedDateTime ? this.deletedDateTime.toISOString() : <any>undefined;
         data["gameLicensePlateId"] = this.gameLicensePlateId;
-        data["game"] = this.game ? this.game.toJSON() : <any>undefined;
         data["licensePlate"] = this.licensePlate ? this.licensePlate.toJSON() : <any>undefined;
         return data;
     }
@@ -3125,7 +3287,6 @@ export interface IGameLicensePlateModel {
     modifiedDateTime?: Date | undefined;
     deletedDateTime?: Date | undefined;
     gameLicensePlateId?: number;
-    game?: GameModel;
     licensePlate?: LicensePlateModel;
 }
 
@@ -3743,6 +3904,49 @@ export enum Role {
     User = "User",
     Editor = "Editor",
     Admin = "Admin",
+}
+
+export class SecretResponse implements ISecretResponse {
+    secret?: string | undefined;
+
+    constructor(data?: ISecretResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.secret = _data["secret"];
+        }
+    }
+
+    static fromJS(data: any): SecretResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new SecretResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["secret"] = this.secret;
+        return data;
+    }
+
+    clone(): SecretResponse {
+        const json = this.toJSON();
+        let result = new SecretResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ISecretResponse {
+    secret?: string | undefined;
 }
 
 export class StateModel implements IStateModel {

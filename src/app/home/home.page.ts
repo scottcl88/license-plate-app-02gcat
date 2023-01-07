@@ -28,10 +28,10 @@ export class HomePage implements OnInit {
   public filteredLicensePlates: LicensePlateModel[] = [];
 
   public currentGame: GameModel | null = null;
-  
+
   public isAuthenticated: boolean = false;
   private isLoading: boolean = false;
-  
+
   private ngUnsubscribe = new Subject();
   public account: Account | undefined | null;
 
@@ -39,12 +39,15 @@ export class HomePage implements OnInit {
     addSuffix: true
   };
 
-  constructor(private activatedRoute: ActivatedRoute, 
+  constructor(private activatedRoute: ActivatedRoute,
     private router: Router, private accountService: AccountService, private popoverController: PopoverController, private alertController: AlertController, private modalController: ModalController, private httpClient: HttpClient, private coreUtilService: CoreUtilService) { }
 
   async ngOnInit() {
     this.availableStates = HomePage.STATES;
     // this.getLicensePlates();
+
+    await this.coreUtilService.presentLoading();
+    this.isLoading = true;
 
     this.accountService.account
       .pipe(takeUntil(this.ngUnsubscribe))
@@ -52,19 +55,18 @@ export class HomePage implements OnInit {
         console.log("Profile checking isAuthenticated", res);
         this.account = res;
         this.isAuthenticated = (this.account && this.account?.token) ? true : false;
-      });
-    await this.coreUtilService.presentLoading();
-    this.isLoading = true;
-    // this.userAuth = this.account;
 
-    if (this.isAuthenticated) {
-      this.isLoading = true;
-      this.getLicensePlates();
-    } else {
-      this.coreUtilService.dismissLoading();
-      this.isLoading = false;
-      this.goToLogin();
-    }
+
+        if (this.isAuthenticated) {
+          this.isLoading = true;
+          this.getLicensePlates();
+        } else {
+          this.coreUtilService.dismissLoading();
+          this.isLoading = false;
+          this.goToLogin();
+        }
+      });
+    // this.userAuth = this.account;
   }
 
   goToLogin() {
@@ -107,9 +109,13 @@ export class HomePage implements OnInit {
     gameClient.getCurrent().subscribe({
       next: (res) => {
         console.log("Successfully got current game");
-        this.currentGame = res ?? new GameModel();
-        this.updateLicensePlateLists();
-        this.coreUtilService.dismissLoading();
+        this.currentGame = res;
+        if (this.currentGame == null) {
+          this.startNewGame();
+        } else {
+          this.updateLicensePlateLists();
+          this.coreUtilService.dismissLoading();
+        }
       }, error: (err) => {
         console.error("Start new game error: ", err);
         this.coreUtilService.presentToastError();
@@ -131,9 +137,11 @@ export class HomePage implements OnInit {
         this.availableLicensePlates = this.allLicensePlates.slice(0);
         this.filteredLicensePlates = this.allLicensePlates.slice(0);
         this.updateLicensePlateLists();
+        this.coreUtilService.dismissLoading();
       }, error: (err) => {
         console.error("Start new game error: ", err);
         this.coreUtilService.presentToastError();
+        this.coreUtilService.dismissLoading();
       }
     });
   }

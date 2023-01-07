@@ -7,9 +7,11 @@ import { environment } from 'src/environments/environment';
 import { StorageService } from './storage.service';
 import { CoreUtilService } from './core-utils';
 import { Account } from './_models';
-import { RegisterRequest, UserId } from 'src/api';
+import { AuthenticateByDeviceRequest, RegisterRequest, UserClient, UserId } from 'src/api';
 
 const baseUrl = `${environment.API_BASE_URL}/api/user`;
+
+import { Device } from '@capacitor/device';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
@@ -26,7 +28,7 @@ export class AccountService {
     ) {
         this.accountSubject = new BehaviorSubject<Account | null>(null);
         this.account = this.accountSubject.asObservable();
-        this.init();
+        // this.init();
     }
     setTitle(title: string) {
         this.title.next(title);
@@ -41,6 +43,14 @@ export class AccountService {
             let storageAccount = await this.storageService.getAccount();
             console.log("Account Service init storageAccount: ", storageAccount);
             this.accountSubject.next(storageAccount);
+
+            if (!storageAccount) {
+                if (this.storageService.get("Secret")) {
+                    await this.setupDeviceWithSecret();
+                }
+                await this.loginWithDevice();
+                console.log("Finished setup with device id");
+            }
         }
     }
 
@@ -53,9 +63,49 @@ export class AccountService {
         const isLoggedIn = accountValue && accountValue.token;
         return isLoggedIn ? true : false;
     }
-    // async getAccount(): Promise<Account> {
-    //     return this.storageService.getAccount();
-    // }
+
+    async setupDeviceWithSecret(): Promise<boolean> {
+        return new Promise(async (resolve, reject) => {
+            let deviceId = (await Device.getId()).uuid;
+            let userClient = new UserClient(this.http, environment.API_BASE_URL);
+            userClient.generateSecret(deviceId).subscribe({
+                next: async (res: any) => {
+                    console.log("Secret was generated");
+                    this.storageService.set("Secret", res?.secret);
+                    resolve(true);
+                },
+                error: (err: any) => {
+                    console.error("Failed to generate secret: ", err);
+                    reject(err);
+                }
+            });
+        });
+    }
+
+    async loginWithDevice(): Promise<boolean> {
+        return new Promise(async (resolve, reject) => {
+            let deviceId = (await Device.getId()).uuid;
+            let secret = await this.storageService.get("Secret");
+
+            let request = new AuthenticateByDeviceRequest();
+            request.deviceId = deviceId;
+            request.secret = secret;
+            let userClient = new UserClient(this.http, environment.API_BASE_URL);
+            userClient.authenticateByDevice(request).subscribe({
+                next: (res: any) => {
+                    console.log("authenticateByDevice successful");
+                    this.accountSubject.next(res);
+                    this.storageService.setAccount(res);
+                    this.startRefreshTokenTimer();
+                    resolve(true);
+                },
+                error: (err: any) => {
+                    console.error("Failed to authenticateByDevice: ", err);
+                    reject(err);
+                }
+            });
+        });
+    }
 
     login(email: string, password: string) {
         return this.http.post<any>(`${baseUrl}/authenticate`, { email, password }, { withCredentials: true })
