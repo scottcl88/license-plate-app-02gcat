@@ -10,6 +10,10 @@ import { HomePage } from './home.page';
 import { ModalSearchLicensePageModule } from '../modal-search-license/modal-search-license.module';
 import { ModalViewLicensePageModule } from '../modal-view-license/modal-view-license.module';
 import { DateFnsModule } from 'ngx-date-fns';
+import { UsMapModule } from '../us-map/us-map.module';
+import { ModalViewImageModule } from '../modal-view-image/modal-view-image.module';
+import { SwiperModule } from 'swiper/angular';
+
 
 @NgModule({
   imports: [
@@ -19,7 +23,10 @@ import { DateFnsModule } from 'ngx-date-fns';
     HomePageRoutingModule,
     ModalSearchLicensePageModule,
     ModalViewLicensePageModule,
-    DateFnsModule
+    DateFnsModule,
+    UsMapModule,
+    ModalViewImageModule,
+    SwiperModule,
   ],
   declarations: [HomePage]
 })

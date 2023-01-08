@@ -23,3 +23,21 @@ ion-menu-button {
 #container a {
   text-decoration: none;
 }
+
+.preview-slides {
+  margin-top: 20%;
+  background: #e6e6e6;
+
+  img {
+      padding-top: 20px;
+      padding-bottom: 20px;
+  }
+}
+
+ion-fab{
+  position: absolute;
+  margin-left: 75%;
+  margin-right: auto;
+  margin-top: 35%;
+  display: block;
+}

@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ModalController, PopoverController } from '@ionic/angular';
 import { CreateGameRequest, GameClient, GameId, GameLicensePlateModel, GameModel, LicenseGameRequest, LicensePlateId, LicensePlateModel, LicensePlatesClient, StateModel } from 'src/api';
@@ -11,6 +11,8 @@ import { es } from 'date-fns/locale';
 import { Subject, takeUntil } from 'rxjs';
 import { Account } from '../_models';
 import { AccountService } from '../account.service';
+import { UsMapService } from '../us-map/us-map.service';
+import { ModalViewImagePage } from '../modal-view-image/modal-view-image.page';
 
 @Component({
   selector: 'app-home',
@@ -39,7 +41,17 @@ export class HomePage implements OnInit {
     addSuffix: true
   };
 
-  constructor(private activatedRoute: ActivatedRoute,
+  sliderOpts = {
+    zoom: false,
+    slidesPerView: 1.5,
+    spaceBetween: 20,
+    centeredSlides: true
+  };
+
+  public sortArray: string[] = ["Alphabetical Asc", "Alphabetical Desc", "Added Asc", "Added Desc"];
+  public currentSort: number = 1;
+
+  constructor(private activatedRoute: ActivatedRoute, private usMapService: UsMapService, private changeDetectorRef: ChangeDetectorRef,
     private router: Router, private accountService: AccountService, private popoverController: PopoverController, private alertController: AlertController, private modalController: ModalController, private httpClient: HttpClient, private coreUtilService: CoreUtilService) { }
 
   async ngOnInit() {
@@ -73,6 +85,27 @@ export class HomePage implements OnInit {
     this.router.navigate(['/login']);
   }
 
+  sortList() {
+    this.currentSort++;
+    if (this.currentSort >= this.sortArray.length) {
+      this.currentSort = 0;
+    }
+    if (this.currentSort == 0) {
+      this.currentLicensePlates.sort((a, b) => {
+        return a?.licensePlate?.state?.name?.localeCompare(b?.licensePlate?.state?.name ?? "") ?? 0;
+      });
+    } else if (this.currentSort == 1) {
+      this.currentLicensePlates.sort((a, b) => {
+        return b?.licensePlate?.state?.name?.localeCompare(a?.licensePlate?.state?.name ?? "") ?? 0;
+      });
+    } else if (this.currentSort == 2) {
+      this.currentLicensePlates.sort((a, b) => (new Date(a.createdDateTime).getTime()) - (new Date(b.createdDateTime).getTime()));
+    }
+    else if (this.currentSort == 3) {
+      this.currentLicensePlates.sort((a, b) => (new Date(b.createdDateTime).getTime()) - (new Date(a.createdDateTime).getTime()));
+    }
+  }
+
   async search() {
     const modal = await this.modalController.create({
       component: ModalSearchLicensePage,
@@ -87,6 +120,17 @@ export class HomePage implements OnInit {
     if (data && data.saved && data.selectedState) {
       this.addLicensePlateToGame(data.selectedState);
     }
+  }
+
+  async openPreview(img: any) {
+    const modal = await this.modalController.create({
+      component: ModalViewImagePage,
+      cssClass: 'transparent-modal',
+      componentProps: {
+        img
+      }
+    });
+    modal.present();
   }
 
   async view(glp: GameLicensePlateModel) {
@@ -174,6 +218,7 @@ export class HomePage implements OnInit {
   }
 
   addLicensePlateToGame(lp: LicensePlateModel) {
+    console.log("Adding license plate: ", lp);
     let request = new LicenseGameRequest();
     request.gameId = new GameId();
     request.gameId.value = this.currentGame?.gameId;
@@ -185,6 +230,12 @@ export class HomePage implements OnInit {
         console.log("Successful add to game");
         this.currentGame = res;
         this.updateLicensePlateLists();
+
+        let usMapIndex = this.usMapService.coordinates.findIndex(x => x.id == lp?.state?.abbreviation);
+        if (usMapIndex >= 0) {
+          console.log("Changing state color: ", usMapIndex);
+          this.usMapService.coordinates[usMapIndex].c = this.usMapService.selectedStateColor;
+        }
       }, error: (err) => {
         console.error("add to game error: ", err);
         this.coreUtilService.presentToastError();
@@ -204,6 +255,12 @@ export class HomePage implements OnInit {
         console.log("Successful remove from game");
         this.currentGame = res;
         this.updateLicensePlateLists();
+
+        let usMapIndex = this.usMapService.coordinates.findIndex(x => x.id == lp?.state?.abbreviation);
+        if (usMapIndex >= 0) {
+          console.log("Changing state color: ", usMapIndex);
+          this.usMapService.coordinates[usMapIndex].c = this.usMapService.defaultStateColor;
+        }
       }, error: (err) => {
         console.error("remove from error: ", err);
         this.coreUtilService.presentToastError();
@@ -228,12 +285,7 @@ export class HomePage implements OnInit {
   }
 
   updateLicensePlateLists() {
-    let filteredLps: GameLicensePlateModel[] = [];
     this.currentGame?.licensePlates?.forEach(lp => {
-      let foundLp = this.allLicensePlates.find(x => x.licensePlateId == lp.licensePlate?.licensePlateId);
-      if (foundLp) {
-        filteredLps.push(foundLp);
-      }
       let availableLpIndex = this.availableLicensePlates.findIndex(x => x.licensePlateId == lp.licensePlate?.licensePlateId);
       if (availableLpIndex >= 0) {
         this.availableLicensePlates.splice(availableLpIndex, 1);
@@ -241,6 +293,12 @@ export class HomePage implements OnInit {
       let filteredLpIndex = this.filteredLicensePlates.findIndex(x => x.licensePlateId == lp.licensePlate?.licensePlateId);
       if (filteredLpIndex >= 0) {
         this.filteredLicensePlates.splice(filteredLpIndex, 1);
+      }
+
+      let usMapIndex = this.usMapService.coordinates.findIndex(x => x.id == lp?.licensePlate?.state?.abbreviation);
+      if (usMapIndex >= 0) {
+        console.log("Changing state color: ", usMapIndex);
+        this.usMapService.coordinates[usMapIndex].c = this.usMapService.selectedStateColor;
       }
     });
     this.currentLicensePlates = this.currentGame?.licensePlates ?? [];

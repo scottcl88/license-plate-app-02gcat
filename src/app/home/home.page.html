@@ -3,7 +3,9 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Home</ion-title>
+    <ion-title>Game #1</ion-title>
+    <ion-icon slot="end" name="ellipsis-vertical-outline" id="click-trigger"
+      style="font-size: 20px; margin-right: 15px;"></ion-icon>
   </ion-toolbar>
 </ion-header>
 
@@ -20,10 +22,10 @@
       </div>
       <div *ngIf="this.currentLicensePlates.length < this.allLicensePlates.length">
         <div style="margin-bottom: 20px;">
-          <h3>Current Game
+          <!-- <h3>Current Game
             <ion-icon name="ellipsis-vertical-outline" id="click-trigger"></ion-icon>
-          </h3>
-          <p>Started {{this.currentGame?.startedDateTime | dfnsFormatDistanceToNow: options }}</p>
+          </h3> -->
+          <!-- <p>Started {{this.currentGame?.startedDateTime | dfnsFormatDistanceToNow: options }}</p> -->
         </div>
         <ion-popover trigger="click-trigger" triggerAction="click">
           <ng-template>
@@ -32,20 +34,54 @@
             </ion-list>
           </ng-template>
         </ion-popover>
-        <div *ngIf="this.currentLicensePlates.length <= 0">
-          <ion-button (click)="search()">Add Your First State</ion-button>
-          <h5>{{this.allLicensePlates.length}} Total States To Find</h5>
-        </div>
-        <div *ngIf="this.currentLicensePlates.length > 0">
-          <ion-button (click)="search()">Add State</ion-button>
-          <h5 style="text-align: center; ">Found {{this.currentLicensePlates.length}} of
-            {{this.allLicensePlates.length}} States</h5>
-        </div>
+        <p style="text-align: center; ">Found {{this.currentLicensePlates.length}} of
+          {{this.allLicensePlates.length}} States</p>
+        <!-- <us-map (click)="openPreview('')"></us-map> -->
+        <ion-fab>
+          <ion-fab-button (click)="search()">
+            <ion-icon name="add"></ion-icon>
+          </ion-fab-button>
+        </ion-fab>
+        <us-map></us-map>
+      </div>
+      <div style="display: flex; opacity: .9; margin-top: 5px;">
+        <ion-icon name="funnel" style="font-size: 25px;" (click)="sortList()"></ion-icon>
+        <ion-text style="font-size: 16px; margin-left: 5px; margin-top: 3px;">{{this.sortArray[this.currentSort]}}</ion-text>
       </div>
       <div style="height: calc(60vh); overflow-y: scroll;">
-        <div *ngFor="let glp of this.currentLicensePlates" (click)="view(glp)">
+        <!-- <div *ngFor="let glp of this.currentLicensePlates" (click)="view(glp)">
           <img [src]="'data:image/png;base64,'+glp?.licensePlate?.image" [alt]="glp?.licensePlate?.state?.name" />
-        </div>
+        </div> -->
+        <ion-list>
+          <ion-item-sliding *ngFor="let glp of this.currentLicensePlates" (click)="view(glp)" style="">
+            <!-- <ion-item-options side="start" (ionSwipe)="addLicensePlateToGame(glp)">
+              <ion-item-option color="success" expandable="true">
+                <ion-icon slot="icon-only" name="checkmark"></ion-icon>
+              </ion-item-option>
+            </ion-item-options> -->
+            <ion-item>
+              <ion-label slot="start">
+                <ion-img [src]="'data:image/png;base64,'+glp?.licensePlate?.image"
+                  [alt]="glp?.licensePlate?.state?.name" width="125px;"></ion-img>
+              </ion-label>
+              <ion-label slot="">
+                {{glp?.licensePlate?.state?.name}}<br>
+                <p style="font-size: 14px;">{{glp?.createdDateTime | dfnsFormat: 'MMM d \'at\' h:mm a' }}</p>
+              </ion-label>
+            </ion-item>
+            <ion-item-options side="end" (ionSwipe)="removeLicensePlateFromGame(glp)">
+              <ion-item-option color="danger" expandable="true">
+                <ion-icon slot="icon-only" name="archive"></ion-icon>
+              </ion-item-option>
+            </ion-item-options>
+          </ion-item-sliding>
+        </ion-list>
+
+        <!-- <swiper [autoplay]="true" [keyboard]="true" [pagination]="true" [scrollbar]="true" [zoom]="true">
+          <ng-template swiperSlide>Slide 1</ng-template>
+          <ng-template swiperSlide>Slide 2</ng-template>
+          <ng-template swiperSlide>Slide 3</ng-template>
+        </swiper> -->
       </div>
     </div>
   </div>
