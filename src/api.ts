@@ -803,6 +803,128 @@ export class GameClient extends ClientBase {
         }
         return _observableOf(null as any);
     }
+
+    /**
+     * Delete game by id
+     * @param id (optional) 
+     * @return Success
+     */
+    delete(id: number | undefined, httpContext?: HttpContext): Observable<boolean> {
+        let url_ = this.baseUrl + "/api/game/delete?";
+        if (id === null)
+            throw new Error("The parameter 'id' cannot be null.");
+        else if (id !== undefined)
+            url_ += "id=" + encodeURIComponent("" + id) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            context: httpContext,
+            headers: new HttpHeaders({
+                "Accept": "text/plain"
+            })
+        };
+
+        return _observableFrom(this.transformOptions(options_)).pipe(_observableMergeMap(transformedOptions_ => {
+            return this.http.request("delete", url_, transformedOptions_);
+        })).pipe(_observableMergeMap((response_: any) => {
+            return this.transformResult(url_, response_, (r) => this.processDelete(r as any));
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.transformResult(url_, response_, (r) => this.processDelete(r as any));
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<boolean>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<boolean>;
+        }));
+    }
+
+    protected processDelete(response: HttpResponseBase): Observable<boolean> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * Restart game by id
+     * @param id (optional) 
+     * @return Success
+     */
+    restart(id: number | undefined, httpContext?: HttpContext): Observable<boolean> {
+        let url_ = this.baseUrl + "/api/game/restart?";
+        if (id === null)
+            throw new Error("The parameter 'id' cannot be null.");
+        else if (id !== undefined)
+            url_ += "id=" + encodeURIComponent("" + id) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            context: httpContext,
+            headers: new HttpHeaders({
+                "Accept": "text/plain"
+            })
+        };
+
+        return _observableFrom(this.transformOptions(options_)).pipe(_observableMergeMap(transformedOptions_ => {
+            return this.http.request("post", url_, transformedOptions_);
+        })).pipe(_observableMergeMap((response_: any) => {
+            return this.transformResult(url_, response_, (r) => this.processRestart(r as any));
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.transformResult(url_, response_, (r) => this.processRestart(r as any));
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<boolean>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<boolean>;
+        }));
+    }
+
+    protected processRestart(response: HttpResponseBase): Observable<boolean> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
 }
 
 @Injectable()
@@ -821,7 +943,7 @@ export class ApiClient extends ClientBase {
      * Get game by id
      * @return Success
      */
-    gameGet(id: number, httpContext?: HttpContext): Observable<GameModel> {
+    game(id: number, httpContext?: HttpContext): Observable<GameModel> {
         let url_ = this.baseUrl + "/api/game/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -840,11 +962,11 @@ export class ApiClient extends ClientBase {
         return _observableFrom(this.transformOptions(options_)).pipe(_observableMergeMap(transformedOptions_ => {
             return this.http.request("get", url_, transformedOptions_);
         })).pipe(_observableMergeMap((response_: any) => {
-            return this.transformResult(url_, response_, (r) => this.processGameGet(r as any));
+            return this.transformResult(url_, response_, (r) => this.processGame(r as any));
         })).pipe(_observableCatch((response_: any) => {
             if (response_ instanceof HttpResponseBase) {
                 try {
-                    return this.transformResult(url_, response_, (r) => this.processGameGet(r as any));
+                    return this.transformResult(url_, response_, (r) => this.processGame(r as any));
                 } catch (e) {
                     return _observableThrow(e) as any as Observable<GameModel>;
                 }
@@ -853,7 +975,7 @@ export class ApiClient extends ClientBase {
         }));
     }
 
-    protected processGameGet(response: HttpResponseBase): Observable<GameModel> {
+    protected processGame(response: HttpResponseBase): Observable<GameModel> {
         const status = response.status;
         const responseBlob =
             response instanceof HttpResponse ? response.body :
@@ -865,65 +987,6 @@ export class ApiClient extends ClientBase {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result200 = GameModel.fromJS(resultData200);
-            return _observableOf(result200);
-            }));
-        } else if (status !== 200 && status !== 204) {
-            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            }));
-        }
-        return _observableOf(null as any);
-    }
-
-    /**
-     * Delete game by id
-     * @return Success
-     */
-    gameDelete(id: number, httpContext?: HttpContext): Observable<boolean> {
-        let url_ = this.baseUrl + "/api/game/{id}";
-        if (id === undefined || id === null)
-            throw new Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_ : any = {
-            observe: "response",
-            responseType: "blob",
-            context: httpContext,
-            headers: new HttpHeaders({
-                "Accept": "text/plain"
-            })
-        };
-
-        return _observableFrom(this.transformOptions(options_)).pipe(_observableMergeMap(transformedOptions_ => {
-            return this.http.request("delete", url_, transformedOptions_);
-        })).pipe(_observableMergeMap((response_: any) => {
-            return this.transformResult(url_, response_, (r) => this.processGameDelete(r as any));
-        })).pipe(_observableCatch((response_: any) => {
-            if (response_ instanceof HttpResponseBase) {
-                try {
-                    return this.transformResult(url_, response_, (r) => this.processGameDelete(r as any));
-                } catch (e) {
-                    return _observableThrow(e) as any as Observable<boolean>;
-                }
-            } else
-                return _observableThrow(response_) as any as Observable<boolean>;
-        }));
-    }
-
-    protected processGameDelete(response: HttpResponseBase): Observable<boolean> {
-        const status = response.status;
-        const responseBlob =
-            response instanceof HttpResponse ? response.body :
-            (response as any).error instanceof Blob ? (response as any).error : undefined;
-
-        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
-        if (status === 200) {
-            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = resultData200 !== undefined ? resultData200 : <any>null;
-    
             return _observableOf(result200);
             }));
         } else if (status !== 200 && status !== 204) {

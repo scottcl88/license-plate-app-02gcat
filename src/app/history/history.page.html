@@ -12,7 +12,7 @@
     <div style="height: calc(90vh); overflow-y: scroll;">
       <ion-card *ngFor="let game of this.games; index as i" [color]="game.finishedDateTime ? '' : 'success'">
         <ion-card-header>
-          <ion-card-title>{{game?.title ?? "Game #"+(i+1)}}</ion-card-title>
+          <ion-card-title>{{game?.title}} <ion-icon name="pencil" style="margin-left: 10px;" (click)="editGame(game)"></ion-icon></ion-card-title>
           <ion-card-subtitle>Found {{game?.licensePlates?.length}} of {{this.availableStates.length}}
             States</ion-card-subtitle>
         </ion-card-header>
@@ -24,15 +24,15 @@
         <ion-grid>
           <ion-row>
             <ion-col>
-              <ion-button fill="solid" color="primary" *ngIf="game.finishedDateTime">
-                <ion-icon name="play"></ion-icon>Continue
+              <ion-button fill="solid" color="primary" *ngIf="game.finishedDateTime" (click)="restartGame(game)">
+                <ion-icon name="play"></ion-icon>Restart
               </ion-button>
-              <ion-button fill="solid" color="secondary" *ngIf="!game.finishedDateTime">
+              <ion-button fill="solid" color="secondary" *ngIf="!game.finishedDateTime" (click)="goToHome()">
                 <ion-icon name="play"></ion-icon>Resume
               </ion-button>
             </ion-col>
             <ion-col>
-              <ion-button fill="solid" color="danger">
+              <ion-button fill="solid" color="danger" (click)="confirmDeleteGame(game)">
                 <ion-icon name="trash"></ion-icon>Delete
               </ion-button>
             </ion-col>

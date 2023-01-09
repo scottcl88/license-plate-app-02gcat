@@ -3,31 +3,32 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Game #{{this.currentGame?.gameNumber}}</ion-title>
+    <ion-title>{{this.currentGame?.title}}</ion-title>
     <ion-icon slot="end" name="ellipsis-vertical-outline" id="click-trigger"
       style="font-size: 20px; margin-right: 15px;"></ion-icon>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <ion-popover trigger="click-trigger" triggerAction="click">
+    <ng-template>
+      <ion-list>
+        <ion-item (click)="confirmNewGame()"><ion-icon name="add" slot="start"></ion-icon> New Game</ion-item>
+        <ion-item (click)="showEditGameModal()"><ion-icon name="pencil" slot="start"></ion-icon> Edit Name</ion-item>
+      </ion-list>
+    </ng-template>
+  </ion-popover>
   <div id="container">
     <div *ngIf="currentGame == null">
-      <ion-button (click)="showStartGameModal()">Start new game?</ion-button>
+      <ion-button (click)="confirmNewGame()">Start new game?</ion-button>
     </div>
     <div *ngIf="currentGame != null">
       <div *ngIf="this.currentLicensePlates.length >= this.allLicensePlates.length">
         <h2>Congratulations!</h2>
         <h5>You found all the states!</h5>
-        <ion-button (click)="showStartGameModal()" style="margin-bottom: 30px;">Start new game</ion-button>
+        <ion-button (click)="confirmNewGame()" style="margin-bottom: 30px;">Start new game</ion-button>
       </div>
       <div *ngIf="this.currentLicensePlates.length < this.allLicensePlates.length">
-        <ion-popover trigger="click-trigger" triggerAction="click">
-          <ng-template>
-            <ion-list>
-              <ion-item (click)="showStartGameModal()">New Game</ion-item>
-            </ion-list>
-          </ng-template>
-        </ion-popover>
         <p style="text-align: center; ">Found {{this.currentLicensePlates.length}} of
           {{this.allLicensePlates.length}} States</p>
         <ion-fab>
@@ -35,7 +36,6 @@
             <ion-icon name="add"></ion-icon>
           </ion-fab-button>
         </ion-fab>
-        <!-- <us-map (click)="openPreview('')"></us-map> -->
         <us-map></us-map>
       </div>
       <div *ngIf="this.currentLicensePlates.length == 0">

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, IonItemSliding, ModalController, PopoverController } from '@ionic/angular';
-import { CreateGameRequest, GameClient, GameId, GameLicensePlateModel, GameModel, LicenseGameRequest, LicensePlateId, LicensePlateModel, LicensePlatesClient, StateModel } from 'src/api';
+import { CreateGameRequest, GameClient, GameId, GameLicensePlateModel, GameModel, LicenseGameRequest, LicensePlateId, LicensePlateModel, LicensePlatesClient, StateModel, UpdateGameRequest } from 'src/api';
 import { environment } from 'src/environments/environment';
 import { CoreUtilService } from '../core-utils';
 import { ModalSearchLicensePage } from '../modal-search-license/modal-search-license.page';
@@ -135,7 +135,7 @@ export class HomePage implements OnInit {
     });
     modal.present();
   }
-  
+
   async showStartGameModal() {
     const modal = await this.modalController.create({
       component: ModalEditGamePage,
@@ -151,9 +151,27 @@ export class HomePage implements OnInit {
     }
   }
 
+  async showEditGameModal() {
+    this.popoverController.dismiss();
+    const modal = await this.modalController.create({
+      component: ModalEditGamePage,
+      componentProps: {
+        isNew: false,
+        title: this.currentGame?.title
+      },
+    });
+    modal.present();
+    const { data } = await modal.onDidDismiss();
+    console.log('Select Modal Dismissed: ', data);
+    if (data && data.saved && data.title) {
+      this.saveGame(data.title);
+    }
+    modal?.dismiss();
+  }
+
   async view(glp: GameLicensePlateModel) {
     console.log("Slides: ", this.slides, await this.slides.getOpenAmount());
-    if(await this.slides.getOpenAmount() != 0){
+    if (await this.slides.getOpenAmount() != 0) {
       return;
     }
     const modal = await this.modalController.create({
@@ -191,7 +209,7 @@ export class HomePage implements OnInit {
 
   startNewGame(title: string) {
     if (this.currentGame != null) {
-      this.confirmNewGame(title);
+      this.confirmNewGame();
       return;
     }
     let request = new CreateGameRequest();
@@ -201,7 +219,7 @@ export class HomePage implements OnInit {
       next: (res) => {
         console.log("Successfully started game");
         this.currentGame = res ?? new GameModel();
-        if(this.currentGame.gameNumber == 0){
+        if (this.currentGame.gameNumber == 0) {
           this.currentGame.gameNumber = 1;
         }
         this.availableLicensePlates = this.allLicensePlates.slice(0);
@@ -217,7 +235,7 @@ export class HomePage implements OnInit {
     });
   }
 
-  async confirmNewGame(title: string) {
+  async confirmNewGame() {
     const alert = await this.alertController.create({
       header: 'Are you sure?',
       subHeader: 'The current game will be ended.',
@@ -234,7 +252,7 @@ export class HomePage implements OnInit {
           role: 'confirm',
           handler: () => {
             this.currentGame = null;
-            this.startNewGame(title);
+            this.showStartGameModal();
           },
         },
       ],
@@ -330,5 +348,22 @@ export class HomePage implements OnInit {
       }
     });
     this.currentLicensePlates = this.currentGame?.licensePlates ?? [];
+  }
+
+  async saveGame(title: string) {
+    let request = new UpdateGameRequest();
+    request.title = title;
+    request.gameId = new GameId();
+    request.gameId.value = this.currentGame?.gameId;
+    let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
+    gameClient.update(request).subscribe({
+      next: (res) => {
+        console.log("Successfully updated game");
+        this.currentGame = res ?? [];
+      }, error: (err) => {
+        console.error("updated game error: ", err);
+        this.coreUtilService.presentToastError();
+      }
+    });
   }
 }

@@ -5,7 +5,11 @@ const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    loadChildren: () => import('./home/home.module').then( m => m.HomePageModule)
+    redirectTo: '/home'
+  },
+  {
+    path: 'home',
+    loadChildren: () => import('./home/home.module').then(m => m.HomePageModule)
   },
   {
     path: 'login',
@@ -43,4 +47,4 @@ const routes: Routes = [
   ],
   exports: [RouterModule]
 })
-export class AppRoutingModule {}
+export class AppRoutingModule { }

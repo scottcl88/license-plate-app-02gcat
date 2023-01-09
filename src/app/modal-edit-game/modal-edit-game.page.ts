@@ -18,7 +18,7 @@ export class ModalEditGamePage implements OnInit {
   @ViewChild(IonInput) inputText: IonInput;
 
   public allGames: GameModel[] = [];
-  public title: string;
+  public title: string = "";
   public isNew: boolean = false;
   public disabled: boolean = false;
 
@@ -26,13 +26,16 @@ export class ModalEditGamePage implements OnInit {
   }
 
   async ngOnInit() {
-    await this.getAllGames();
-    let gameNumber = this.allGames.length;
-    this.title = `Game #${gameNumber}`;
+    this.getAllGames();
+    if (this.isNew) {
+      let gameNumber = this.allGames.length + 1;
+      this.title = `Game #${gameNumber}`;
+    }
   }
 
   async ionViewDidEnter() {
     this.inputText.setFocus();
+    console.log("Game title: ", this.title);
   }
 
   getAllGames() {
@@ -40,8 +43,10 @@ export class ModalEditGamePage implements OnInit {
     gameClient.getAll().subscribe({
       next: (res) => {
         this.allGames = res;
-        let gameNumber = this.allGames.length;
-        this.title = `Game #${gameNumber}`;
+        if (this.isNew) {
+          let gameNumber = this.allGames.length + 1;
+          this.title = `Game #${gameNumber}`;
+        }
         console.log("Got all games: ", res);
       }, error: (err) => {
         console.error("Error on getAll: ", err);
@@ -60,7 +65,7 @@ export class ModalEditGamePage implements OnInit {
       } else {
         this.disabled = false;
       }
-    }else{
+    } else {
       this.disabled = true;
     }
   }
