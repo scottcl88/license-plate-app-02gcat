@@ -10,6 +10,8 @@ import { HistoryPage } from './history.page';
 import { ModalSearchLicensePageModule } from '../modal-search-license/modal-search-license.module';
 import { ModalViewLicensePageModule } from '../modal-view-license/modal-view-license.module';
 import { DateFnsModule } from 'ngx-date-fns';
+import { ModalEditGamePage } from '../modal-edit-game/modal-edit-game.page';
+import { ModalEditGamePageModule } from '../modal-edit-game/modal-edit-game.module';
 
 @NgModule({
   imports: [
@@ -19,7 +21,8 @@ import { DateFnsModule } from 'ngx-date-fns';
     HistoryPageRoutingModule,
     ModalSearchLicensePageModule,
     ModalViewLicensePageModule,
-    DateFnsModule
+    DateFnsModule,
+    ModalEditGamePageModule
   ],
   declarations: [HistoryPage]
 })

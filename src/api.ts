@@ -3295,6 +3295,7 @@ export class GameModel implements IGameModel {
     modifiedDateTime?: Date | undefined;
     deletedDateTime?: Date | undefined;
     gameId?: number;
+    gameNumber?: number;
     title?: string | undefined;
     description?: string | undefined;
     licensePlates?: GameLicensePlateModel[] | undefined;
@@ -3316,6 +3317,7 @@ export class GameModel implements IGameModel {
             this.modifiedDateTime = _data["modifiedDateTime"] ? new Date(_data["modifiedDateTime"].toString()) : <any>undefined;
             this.deletedDateTime = _data["deletedDateTime"] ? new Date(_data["deletedDateTime"].toString()) : <any>undefined;
             this.gameId = _data["gameId"];
+            this.gameNumber = _data["gameNumber"];
             this.title = _data["title"];
             this.description = _data["description"];
             if (Array.isArray(_data["licensePlates"])) {
@@ -3341,6 +3343,7 @@ export class GameModel implements IGameModel {
         data["modifiedDateTime"] = this.modifiedDateTime ? this.modifiedDateTime.toISOString() : <any>undefined;
         data["deletedDateTime"] = this.deletedDateTime ? this.deletedDateTime.toISOString() : <any>undefined;
         data["gameId"] = this.gameId;
+        data["gameNumber"] = this.gameNumber;
         data["title"] = this.title;
         data["description"] = this.description;
         if (Array.isArray(this.licensePlates)) {
@@ -3366,6 +3369,7 @@ export interface IGameModel {
     modifiedDateTime?: Date | undefined;
     deletedDateTime?: Date | undefined;
     gameId?: number;
+    gameNumber?: number;
     title?: string | undefined;
     description?: string | undefined;
     licensePlates?: GameLicensePlateModel[] | undefined;

@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
 export class AppComponent {
   public appPages = [
     { title: 'Current Game', url: '/', icon: 'play' },
-    { title: 'Finished Games', url: '/history', icon: 'list' },
+    { title: 'Game List', url: '/history', icon: 'list' },
     { title: 'Profile', url: '/profile', icon: 'person' }
   ];
   constructor(public router: Router) { }

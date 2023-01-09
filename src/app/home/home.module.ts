@@ -13,6 +13,7 @@ import { DateFnsModule } from 'ngx-date-fns';
 import { UsMapModule } from '../us-map/us-map.module';
 import { ModalViewImageModule } from '../modal-view-image/modal-view-image.module';
 import { SwiperModule } from 'swiper/angular';
+import { ModalEditGamePageModule } from '../modal-edit-game/modal-edit-game.module';
 
 
 @NgModule({
@@ -27,6 +28,7 @@ import { SwiperModule } from 'swiper/angular';
     UsMapModule,
     ModalViewImageModule,
     SwiperModule,
+    ModalEditGamePageModule
   ],
   declarations: [HomePage]
 })

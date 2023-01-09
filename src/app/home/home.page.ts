@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController, ModalController, PopoverController } from '@ionic/angular';
+import { AlertController, IonItemSliding, ModalController, PopoverController } from '@ionic/angular';
 import { CreateGameRequest, GameClient, GameId, GameLicensePlateModel, GameModel, LicenseGameRequest, LicensePlateId, LicensePlateModel, LicensePlatesClient, StateModel } from 'src/api';
 import { environment } from 'src/environments/environment';
 import { CoreUtilService } from '../core-utils';
@@ -13,6 +13,7 @@ import { Account } from '../_models';
 import { AccountService } from '../account.service';
 import { UsMapService } from '../us-map/us-map.service';
 import { ModalViewImagePage } from '../modal-view-image/modal-view-image.page';
+import { ModalEditGamePage } from '../modal-edit-game/modal-edit-game.page';
 
 @Component({
   selector: 'app-home',
@@ -21,6 +22,8 @@ import { ModalViewImagePage } from '../modal-view-image/modal-view-image.page';
 })
 export class HomePage implements OnInit {
   public static readonly STATES: string[] = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"];
+
+  @ViewChild('slides') slides: IonItemSliding;
 
   public availableStates: string[] = [];
 
@@ -48,8 +51,8 @@ export class HomePage implements OnInit {
     centeredSlides: true
   };
 
-  public sortArray: string[] = ["Alphabetical Asc", "Alphabetical Desc", "Added Asc", "Added Desc"];
-  public currentSort: number = 1;
+  public sortArray: string[] = ["Name Asc", "Name Desc", "Added Asc", "Added Desc"];
+  public currentSort: number = 0;
 
   constructor(private activatedRoute: ActivatedRoute, private usMapService: UsMapService, private changeDetectorRef: ChangeDetectorRef,
     private router: Router, private accountService: AccountService, private popoverController: PopoverController, private alertController: AlertController, private modalController: ModalController, private httpClient: HttpClient, private coreUtilService: CoreUtilService) { }
@@ -132,8 +135,27 @@ export class HomePage implements OnInit {
     });
     modal.present();
   }
+  
+  async showStartGameModal() {
+    const modal = await this.modalController.create({
+      component: ModalEditGamePage,
+      componentProps: {
+        isNew: true
+      },
+    });
+    modal.present();
+    const { data } = await modal.onDidDismiss();
+    console.log('Select Modal Dismissed: ', data);
+    if (data && data.saved && data.title) {
+      this.startNewGame(data.title);
+    }
+  }
 
   async view(glp: GameLicensePlateModel) {
+    console.log("Slides: ", this.slides, await this.slides.getOpenAmount());
+    if(await this.slides.getOpenAmount() != 0){
+      return;
+    }
     const modal = await this.modalController.create({
       component: ModalViewLicensePage,
       componentProps: {
@@ -155,7 +177,7 @@ export class HomePage implements OnInit {
         console.log("Successfully got current game");
         this.currentGame = res;
         if (this.currentGame == null) {
-          this.startNewGame();
+          this.startNewGame("");
         } else {
           this.updateLicensePlateLists();
           this.coreUtilService.dismissLoading();
@@ -167,20 +189,25 @@ export class HomePage implements OnInit {
     });
   }
 
-  startNewGame() {
+  startNewGame(title: string) {
     if (this.currentGame != null) {
-      this.confirmNewGame();
+      this.confirmNewGame(title);
       return;
     }
     let request = new CreateGameRequest();
+    request.title = title;
     let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
     gameClient.create(request).subscribe({
       next: (res) => {
         console.log("Successfully started game");
         this.currentGame = res ?? new GameModel();
+        if(this.currentGame.gameNumber == 0){
+          this.currentGame.gameNumber = 1;
+        }
         this.availableLicensePlates = this.allLicensePlates.slice(0);
         this.filteredLicensePlates = this.allLicensePlates.slice(0);
         this.updateLicensePlateLists();
+        this.usMapService.coordinates.forEach(x => x.c = this.usMapService.defaultStateColor);
         this.coreUtilService.dismissLoading();
       }, error: (err) => {
         console.error("Start new game error: ", err);
@@ -190,7 +217,7 @@ export class HomePage implements OnInit {
     });
   }
 
-  async confirmNewGame() {
+  async confirmNewGame(title: string) {
     const alert = await this.alertController.create({
       header: 'Are you sure?',
       subHeader: 'The current game will be ended.',
@@ -207,7 +234,7 @@ export class HomePage implements OnInit {
           role: 'confirm',
           handler: () => {
             this.currentGame = null;
-            this.startNewGame();
+            this.startNewGame(title);
           },
         },
       ],
@@ -229,8 +256,8 @@ export class HomePage implements OnInit {
       next: (res) => {
         console.log("Successful add to game");
         this.currentGame = res;
+        this.availableLicensePlates = this.allLicensePlates.slice(0);
         this.updateLicensePlateLists();
-
         let usMapIndex = this.usMapService.coordinates.findIndex(x => x.id == lp?.state?.abbreviation);
         if (usMapIndex >= 0) {
           console.log("Changing state color: ", usMapIndex);
@@ -243,20 +270,21 @@ export class HomePage implements OnInit {
     });
   }
 
-  removeLicensePlateFromGame(lp: LicensePlateModel) {
+  removeLicensePlateFromGame(lp: GameLicensePlateModel) {
     let request = new LicenseGameRequest();
     request.gameId = new GameId();
     request.gameId.value = this.currentGame?.gameId;
     request.licensePlateId = new LicensePlateId();
-    request.licensePlateId.value = lp.licensePlateId;
+    request.licensePlateId.value = lp?.licensePlate?.licensePlateId;
     let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
     gameClient.remove(request).subscribe({
       next: (res) => {
         console.log("Successful remove from game");
         this.currentGame = res;
+        this.availableLicensePlates = this.allLicensePlates.slice(0);
+        this.filteredLicensePlates = this.allLicensePlates.slice(0);
         this.updateLicensePlateLists();
-
-        let usMapIndex = this.usMapService.coordinates.findIndex(x => x.id == lp?.state?.abbreviation);
+        let usMapIndex = this.usMapService.coordinates.findIndex(x => x.id == lp?.licensePlate?.state?.abbreviation);
         if (usMapIndex >= 0) {
           console.log("Changing state color: ", usMapIndex);
           this.usMapService.coordinates[usMapIndex].c = this.usMapService.defaultStateColor;

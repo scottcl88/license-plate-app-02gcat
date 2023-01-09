@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Game #1</ion-title>
+    <ion-title>Game #{{this.currentGame?.gameNumber}}</ion-title>
     <ion-icon slot="end" name="ellipsis-vertical-outline" id="click-trigger"
       style="font-size: 20px; margin-right: 15px;"></ion-icon>
   </ion-toolbar>
@@ -12,53 +12,50 @@
 <ion-content [fullscreen]="true">
   <div id="container">
     <div *ngIf="currentGame == null">
-      <ion-button (click)="startNewGame()">Start new game?</ion-button>
+      <ion-button (click)="showStartGameModal()">Start new game?</ion-button>
     </div>
     <div *ngIf="currentGame != null">
       <div *ngIf="this.currentLicensePlates.length >= this.allLicensePlates.length">
         <h2>Congratulations!</h2>
         <h5>You found all the states!</h5>
-        <ion-button (click)="startNewGame()" style="margin-bottom: 30px;">Start new game?</ion-button>
+        <ion-button (click)="showStartGameModal()" style="margin-bottom: 30px;">Start new game</ion-button>
       </div>
       <div *ngIf="this.currentLicensePlates.length < this.allLicensePlates.length">
-        <div style="margin-bottom: 20px;">
-          <!-- <h3>Current Game
-            <ion-icon name="ellipsis-vertical-outline" id="click-trigger"></ion-icon>
-          </h3> -->
-          <!-- <p>Started {{this.currentGame?.startedDateTime | dfnsFormatDistanceToNow: options }}</p> -->
-        </div>
         <ion-popover trigger="click-trigger" triggerAction="click">
           <ng-template>
             <ion-list>
-              <ion-item (click)="startNewGame()">New Game</ion-item>
+              <ion-item (click)="showStartGameModal()">New Game</ion-item>
             </ion-list>
           </ng-template>
         </ion-popover>
         <p style="text-align: center; ">Found {{this.currentLicensePlates.length}} of
           {{this.allLicensePlates.length}} States</p>
-        <!-- <us-map (click)="openPreview('')"></us-map> -->
         <ion-fab>
           <ion-fab-button (click)="search()">
             <ion-icon name="add"></ion-icon>
           </ion-fab-button>
         </ion-fab>
+        <!-- <us-map (click)="openPreview('')"></us-map> -->
         <us-map></us-map>
       </div>
-      <div style="display: flex; opacity: .9; margin-top: 5px;">
-        <ion-icon name="funnel" style="font-size: 25px;" (click)="sortList()"></ion-icon>
-        <ion-text style="font-size: 16px; margin-left: 5px; margin-top: 3px;">{{this.sortArray[this.currentSort]}}</ion-text>
+      <div *ngIf="this.currentLicensePlates.length == 0">
+        <ion-button (click)="search()" style="margin-top: 30px;">
+          <ion-icon name="add" slot="start"></ion-icon>
+          Add Your First State
+        </ion-button>
       </div>
-      <div style="height: calc(60vh); overflow-y: scroll;">
-        <!-- <div *ngFor="let glp of this.currentLicensePlates" (click)="view(glp)">
-          <img [src]="'data:image/png;base64,'+glp?.licensePlate?.image" [alt]="glp?.licensePlate?.state?.name" />
-        </div> -->
+      <div style="display: flex; opacity: .9; margin-top: 5px; margin-bottom: 10px;"
+        *ngIf="this.currentLicensePlates.length > 1" (click)="sortList()">
+        <ion-icon name="funnel" style="font-size: 25px;"></ion-icon>
+        <ion-text
+          style="font-size: 16px; margin-left: 5px; margin-top: 3px;">{{this.sortArray[this.currentSort].replace('
+          Asc','').replace(' Desc','')}}</ion-text>
+        <ion-icon name="arrow-up-outline" *ngIf="this.sortArray[this.currentSort].indexOf('Desc') > 0"></ion-icon>
+        <ion-icon name="arrow-down-outline" *ngIf="this.sortArray[this.currentSort].indexOf('Asc') > 0"></ion-icon>
+      </div>
+      <div style="height: calc(60vh); overflow-y: scroll;" *ngIf="this.currentLicensePlates.length > 0">
         <ion-list>
-          <ion-item-sliding *ngFor="let glp of this.currentLicensePlates" (click)="view(glp)" style="">
-            <!-- <ion-item-options side="start" (ionSwipe)="addLicensePlateToGame(glp)">
-              <ion-item-option color="success" expandable="true">
-                <ion-icon slot="icon-only" name="checkmark"></ion-icon>
-              </ion-item-option>
-            </ion-item-options> -->
+          <ion-item-sliding #slides *ngFor="let glp of this.currentLicensePlates" (click)="view(glp)">
             <ion-item>
               <ion-label slot="start">
                 <ion-img [src]="'data:image/png;base64,'+glp?.licensePlate?.image"
@@ -69,19 +66,13 @@
                 <p style="font-size: 14px;">{{glp?.createdDateTime | dfnsFormat: 'MMM d \'at\' h:mm a' }}</p>
               </ion-label>
             </ion-item>
-            <ion-item-options side="end" (ionSwipe)="removeLicensePlateFromGame(glp)">
-              <ion-item-option color="danger" expandable="true">
-                <ion-icon slot="icon-only" name="archive"></ion-icon>
+            <ion-item-options side="end">
+              <ion-item-option color="danger" expandable="false" (click)="removeLicensePlateFromGame(glp)">
+                <ion-icon slot="icon-only" name="trash"></ion-icon>
               </ion-item-option>
             </ion-item-options>
           </ion-item-sliding>
         </ion-list>
-
-        <!-- <swiper [autoplay]="true" [keyboard]="true" [pagination]="true" [scrollbar]="true" [zoom]="true">
-          <ng-template swiperSlide>Slide 1</ng-template>
-          <ng-template swiperSlide>Slide 2</ng-template>
-          <ng-template swiperSlide>Slide 3</ng-template>
-        </swiper> -->
       </div>
     </div>
   </div>

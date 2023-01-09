@@ -11,7 +11,7 @@ Copyright 2022 Scott Lewis, All rights reserved.
 
 <ion-content>
   <p style="margin-left: 15px;">Select the state's license plate you found</p>
-  <ion-searchbar id="search" class="search" show-clear-button="focus" placeholder="Search" [autofocus]="true"
+  <ion-searchbar id="search" #searchBar class="search" show-clear-button="focus" placeholder="Search" [autofocus]="true"
     (ionChange)="searchOnChange($event)"></ion-searchbar>
   <div style="height: 80vh; overflow-y: scroll;" style="margin-left: auto; margin-right: auto; width: fit-content; margin-bottom: 15px;">
     <div button *ngFor="let lp of filteredLicensePlates" (click)="dismiss(true, lp)" style="margin-bottom: 10px;">
