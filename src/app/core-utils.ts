@@ -14,7 +14,7 @@ import { NGXLogger } from "ngx-logger";
 export class CoreUtilService {
   private loadingElement: any;
 
-  constructor(private logger: NGXLogger,
+  constructor(private logger: NGXLogger, private router: Router,
     private loadingController: LoadingController, private toastController: ToastController) {
 
   }
@@ -27,7 +27,7 @@ export class CoreUtilService {
     });
     await this.loadingElement.present();
   }
- 
+
   dismissLoading() {
     this.loadingElement?.dismiss();
   }
@@ -49,5 +49,19 @@ export class CoreUtilService {
       position: 'middle',
     });
     toast.present();
+  }
+
+  isNonAuthPage() {
+    let forgotPasswordFound = this.router.url.indexOf("forgot-password") > 0;
+    let resetPasswordFound = this.router.url.indexOf("reset-password") > 0;
+    let registerFound = this.router.url.indexOf("register") > 0;
+    let verifyEmailFound = this.router.url.indexOf("verify-email") > 0;
+    let legalFound = this.router.url.indexOf("legal") > 0;
+    let privacyPolicyFound = this.router.url.indexOf("privacy-policy") > 0;
+    let termsOfUseFound = this.router.url.indexOf("terms-of-use") > 0;
+    if (forgotPasswordFound || resetPasswordFound || registerFound || verifyEmailFound || legalFound || privacyPolicyFound || termsOfUseFound) {
+      return true;
+    }
+    return false;
   }
 }

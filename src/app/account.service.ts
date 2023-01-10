@@ -44,12 +44,16 @@ export class AccountService {
             console.log("Account Service init storageAccount: ", storageAccount);
             this.accountSubject.next(storageAccount);
 
-            if (!storageAccount) {
-                if (this.storageService.get("Secret")) {
-                    await this.setupDeviceWithSecret();
+            try {
+                if (!storageAccount) {
+                    if (this.storageService.get("Secret")) {
+                        await this.setupDeviceWithSecret();
+                    }
+                    await this.loginWithDevice();
+                    console.log("Finished setup with device id");
                 }
-                await this.loginWithDevice();
-                console.log("Finished setup with device id");
+            } catch (err) {
+                console.error("Error during account init: ", err);
             }
         }
     }
@@ -76,7 +80,8 @@ export class AccountService {
                 },
                 error: (err: any) => {
                     console.error("Failed to generate secret: ", err);
-                    reject(err);
+                    resolve(false);
+                    // reject(err);
                 }
             });
         });
@@ -129,15 +134,10 @@ export class AccountService {
     }
 
     clearAccount() {
-        let forgotPasswordFound = this.router.url.indexOf("forgot-password") > 0;
-        let resetPasswordFound = this.router.url.indexOf("reset-password") > 0;
-        let registerFound = this.router.url.indexOf("register") > 0;
-        let verifyEmailFound = this.router.url.indexOf("verify-email") > 0;
         this.stopRefreshTokenTimer();
         this.storageService.logout();
         this.accountSubject.next(null);
-        console.log("logout StorageService: ", forgotPasswordFound, resetPasswordFound, registerFound, verifyEmailFound);
-        if (!forgotPasswordFound && !resetPasswordFound && !registerFound && !verifyEmailFound) {
+        if (!this.coreUtilService.isNonAuthPage()) {
             this.router.navigate(['/login']);
         }
     }

@@ -4,10 +4,19 @@
       <ion-content>
         <ion-list id="inbox-list">
           <ion-list-header>License Plate Mania</ion-list-header>
-          <ion-menu-toggle auto-hide="false" *ngFor="let p of appPages; let i = index">
-            <ion-item routerDirection="root" [routerLink]="[p.url]" lines="none" detail="false" [class]="(p.url == this.router.url) ? 'selected' : ''" >
-              <ion-icon slot="start" [ios]="p.icon + '-outline'" [md]="p.icon + '-sharp'"></ion-icon>
-              <ion-label>{{ p.title }}</ion-label>
+          <ion-menu-toggle auto-hide="false">
+            <span *ngFor="let p of appPages; index as i">
+              <ion-item routerDirection="root" [routerLink]="[p.url]" lines="none" detail="false"
+                [class]="(p.url == this.router.url) ? 'selected' : ''">
+                <ion-icon slot="start" [ios]="p.icon + '-outline'" [md]="p.icon + '-sharp'"></ion-icon>
+                <ion-label>{{ p.title }}</ion-label>
+              </ion-item>
+            </span>
+            <hr>
+            <ion-item routerDirection="root" routerLink="/legal" lines="none" detail="false"
+              [class]="('/legal'== this.router.url) ? 'selected' : ''">
+              <ion-icon slot="start" name="document-text"></ion-icon>
+              <ion-label>Legal</ion-label>
             </ion-item>
           </ion-menu-toggle>
         </ion-list>

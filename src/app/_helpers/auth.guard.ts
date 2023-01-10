@@ -3,6 +3,7 @@ import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AccountService } from '../account.service';
+import { CoreUtilService } from '../core-utils';
 import { Account } from '../_models';
 
 
@@ -12,7 +13,7 @@ export class AuthGuard implements CanActivate, OnInit, OnDestroy {
     private ngUnsubscribe = new Subject();
     public account: Account | null;
 
-    constructor(private router: Router, private accountService: AccountService) {
+    constructor(private router: Router, private accountService: AccountService, private coreUtilService: CoreUtilService) {
         this.ngOnInit();
     }
 
@@ -45,11 +46,8 @@ export class AuthGuard implements CanActivate, OnInit, OnDestroy {
         }
 
         console.log("canActivate not logged in");
-        let forgotPasswordFound = this.router.url.indexOf("forgot-password") > 0;
-        let resetPasswordFound = this.router.url.indexOf("reset-password") > 0;
-        let registerFound = this.router.url.indexOf("register") > 0;
-        let verifyEmailFound = this.router.url.indexOf("verify-email") > 0;
-        if (!forgotPasswordFound && !resetPasswordFound && !registerFound && !verifyEmailFound) {
+
+        if (this.coreUtilService.isNonAuthPage()) {
             return true;
         }
         // not logged in so redirect to login page with the return url 

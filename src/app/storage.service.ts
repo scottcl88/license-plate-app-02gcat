@@ -23,7 +23,7 @@ export class StorageService {
 
   constructor(private storage: Storage,
     private coreUtilService: CoreUtilService, private logger: NGXLogger, private httpClient: HttpClient, private router: Router) {
-    
+
   }
 
   async init() {
@@ -43,12 +43,7 @@ export class StorageService {
 
   public async checkLoggedIn() {
     let isLoggedIn = await this._storage?.get('isLoggedIn');
-    let forgotPasswordFound = this.router.url.indexOf("forgot-password") > 0;
-    let resetPasswordFound = this.router.url.indexOf("reset-password") > 0;
-    let registerFound = this.router.url.indexOf("register") > 0;
-    let verifyEmailFound = this.router.url.indexOf("verify-email") > 0;
-    console.log("CheckLoggedIn StorageService: ", isLoggedIn, forgotPasswordFound, resetPasswordFound, registerFound, verifyEmailFound);
-    if (!isLoggedIn && !forgotPasswordFound && !resetPasswordFound && !registerFound && !verifyEmailFound) {
+    if (!isLoggedIn && !this.coreUtilService.isNonAuthPage()) {
       this.router.navigate(['/login']);
     }
   }

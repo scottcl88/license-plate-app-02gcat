@@ -12,6 +12,18 @@ const routes: Routes = [
     loadChildren: () => import('./home/home.module').then(m => m.HomePageModule)
   },
   {
+    path: 'legal',
+    loadChildren: () => import('./legal/legal.module').then(m => m.LegalPageModule)
+  },
+  {
+    path: 'terms-of-use',
+    loadChildren: () => import('./terms/terms.module').then(m => m.TermsPageModule)
+  },
+  {
+    path: 'privacy-policy',
+    loadChildren: () => import('./privacy-policy/privacy-policy.module').then(m => m.PrivacyPolicyPageModule)
+  },
+  {
     path: 'login',
     loadChildren: () => import('./login/login.module').then(m => m.LoginPageModule)
   },

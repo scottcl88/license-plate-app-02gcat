@@ -1,8 +1,8 @@
 {
   "name": "license-plate-mania",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Scott Lewis",
-  "homepage": "https://scottcl.com/",
+  "homepage": "https://www.platemania.net/",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
