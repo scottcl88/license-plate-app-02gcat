@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Plate Mania</string>
-    <string name="title_activity_main">Plate Mania</string>
+    <string name="app_name">License Plate Mania</string>
+    <string name="title_activity_main">License Plate Mania</string>
     <string name="package_name">com.lewis.cargame</string>
     <string name="custom_url_scheme">com.lewis.cargame</string>
 </resources>

@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, IonItemSliding, ModalController, PopoverController } from '@ionic/angular';
 import { CreateGameRequest, GameClient, GameId, GameLicensePlateModel, GameModel, LicenseGameRequest, LicensePlateId, LicensePlateModel, LicensePlatesClient, StateModel, UpdateGameRequest } from 'src/api';
@@ -7,7 +7,6 @@ import { environment } from 'src/environments/environment';
 import { CoreUtilService } from '../core-utils';
 import { ModalSearchLicensePage } from '../modal-search-license/modal-search-license.page';
 import { ModalViewLicensePage } from '../modal-view-license/modal-view-license.page';
-import { es } from 'date-fns/locale';
 import { Subject, takeUntil } from 'rxjs';
 import { Account } from '../_models';
 import { AccountService } from '../account.service';
@@ -23,7 +22,8 @@ import { ModalEditGamePage } from '../modal-edit-game/modal-edit-game.page';
 export class HomePage implements OnInit {
   public static readonly STATES: string[] = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"];
 
-  @ViewChild('slides') slides: IonItemSliding;
+  @ViewChildren('slides') slides: QueryList<IonItemSliding>;
+
 
   public availableStates: string[] = [];
 
@@ -59,7 +59,6 @@ export class HomePage implements OnInit {
 
   async ngOnInit() {
     this.availableStates = HomePage.STATES;
-    // this.getLicensePlates();
 
     await this.coreUtilService.presentLoading();
     this.isLoading = true;
@@ -81,7 +80,6 @@ export class HomePage implements OnInit {
           this.goToLogin();
         }
       });
-    // this.userAuth = this.account;
   }
 
   goToLogin() {
@@ -169,9 +167,8 @@ export class HomePage implements OnInit {
     modal?.dismiss();
   }
 
-  async view(glp: GameLicensePlateModel) {
-    console.log("Slides: ", this.slides, await this.slides.getOpenAmount());
-    if (await this.slides.getOpenAmount() != 0) {
+  async view(glp: GameLicensePlateModel, i: number) {
+    if (await this.slides.get(i)?.getOpenAmount() != 0) {
       return;
     }
     const modal = await this.modalController.create({

@@ -55,7 +55,7 @@
       </div>
       <div style="height: calc(60vh); overflow-y: scroll;" *ngIf="this.currentLicensePlates.length > 0">
         <ion-list>
-          <ion-item-sliding #slides *ngFor="let glp of this.currentLicensePlates" (click)="view(glp)">
+          <ion-item-sliding #slides *ngFor="let glp of this.currentLicensePlates; index as i;" (click)="view(glp, i)">
             <ion-item>
               <ion-label slot="start">
                 <ion-img [src]="'data:image/png;base64,'+glp?.licensePlate?.image"

@@ -6,16 +6,11 @@ Copyright 2022 Scott Lewis, All rights reserved.
  */
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import axios, { AxiosRequestConfig } from 'axios';
-import { Observable, of, scheduled } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { mergeMap, switchMap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { StorageService } from '../storage.service';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { PopoverController, ToastController } from '@ionic/angular';
 import { AccountService } from '../account.service';
-import { ModalForgotPasswordPage } from '../modal-forgot-password/modal-forgot-password.page';
 import { CoreUtilService } from '../core-utils';
 import { Device } from '@capacitor/device';
 import { RegisterRequest } from 'src/api';
@@ -65,7 +60,7 @@ export class RegisterPage implements OnInit {
     console.log('Register ngOnInit:', this.token);
   }
 
-  backToLogin(){
+  backToLogin() {
     this.router.navigate(['/login']);
   }
 
@@ -131,10 +126,10 @@ export class RegisterPage implements OnInit {
     request.deviceToken = await this.storageService.getDeviceToken();
     request.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     request.utcOffset = new Date().getTimezoneOffset();
-    var deviceId = await Device.getId();
+    let deviceId = await Device.getId();
     console.log("DeviceId = ", deviceId?.uuid);
     request.deviceId = deviceId?.uuid;
-    var deviceInfo = await Device.getInfo();
+    let deviceInfo = await Device.getInfo();
     request.model = deviceInfo.model;
     request.isVirtual = deviceInfo.isVirtual;
     request.manufacturer = deviceInfo.manufacturer;
@@ -143,19 +138,21 @@ export class RegisterPage implements OnInit {
     request.platform = deviceInfo.platform;
     request.webViewVersion = deviceInfo.webViewVersion;
 
-    this.accountService.register(request).subscribe(res => {
-      console.log("register result: ", res);
-      this.isSaving = false;
-      this.submitted = false;
-      this.coreUtilService.presentToastSuccess('Registration successful, please check your email for verification instructions', 5000);
-      this.router.navigate(['/login']);
-    }, err => {
-      this.isSaving = false;
-      this.submitted = false;
-      console.log("register error: ", err);
-      this.coreUtilService.presentToastError();
-      this.errorMessage = err;
-      this.showErrors = true;
+    this.accountService.register(request).subscribe({
+      next: (res) => {
+        console.log("register result: ", res);
+        this.isSaving = false;
+        this.submitted = false;
+        this.coreUtilService.presentToastSuccess('Registration successful, please check your email for verification instructions', 5000);
+        this.router.navigate(['/login']);
+      }, error: (err) => {
+        this.isSaving = false;
+        this.submitted = false;
+        console.log("register error: ", err);
+        this.coreUtilService.presentToastError();
+        this.errorMessage = err;
+        this.showErrors = true;
+      }
     });
   }
 }
