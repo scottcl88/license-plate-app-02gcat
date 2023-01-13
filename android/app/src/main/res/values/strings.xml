@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+    <string translatable="false"  name="game_services_project_id">407695162217</string>
+    <string name="app_id">com.lewis.cargame</string>
     <string name="app_name">License Plate Mania</string>
     <string name="title_activity_main">License Plate Mania</string>
     <string name="package_name">com.lewis.cargame</string>

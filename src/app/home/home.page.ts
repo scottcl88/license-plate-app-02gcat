@@ -13,6 +13,7 @@ import { AccountService } from '../account.service';
 import { UsMapService } from '../us-map/us-map.service';
 import { ModalViewImagePage } from '../modal-view-image/modal-view-image.page';
 import { ModalEditGamePage } from '../modal-edit-game/modal-edit-game.page';
+import { GoogleGameServices } from 'capacitor-google-game-services';
 
 @Component({
   selector: 'app-home',
@@ -24,6 +25,18 @@ export class HomePage implements OnInit {
 
   @ViewChildren('slides') slides: QueryList<IonItemSliding>;
 
+  testSignIn(){
+    GoogleGameServices.signIn();
+  }
+  testUi(){
+    GoogleGameServices.showSavedGamesUI();
+  }
+  testSave(){
+    GoogleGameServices.saveGame();
+  }
+  testLoad(){
+    GoogleGameServices.loadGame();
+  }
 
   public availableStates: string[] = [];
 
