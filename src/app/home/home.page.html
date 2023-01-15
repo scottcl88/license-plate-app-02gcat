@@ -19,10 +19,10 @@
     </ng-template>
   </ion-popover>
   <div id="container">
-    <ion-button (click)="testSignIn()">Test Sign In</ion-button>
+    <!-- <ion-button (click)="testSignIn()">Test Sign In</ion-button>
     <ion-button (click)="testUi()">Test UI</ion-button>
     <ion-button (click)="testSave()">Test Save</ion-button>
-    <ion-button (click)="testLoad()">Test Load</ion-button>
+    <ion-button (click)="testLoad()">Test Load</ion-button> -->
     <div *ngIf="currentGame == null">
       <ion-button (click)="confirmNewGame()">Start new game?</ion-button>
     </div>
@@ -62,7 +62,7 @@
           <ion-item-sliding #slides *ngFor="let glp of this.currentLicensePlates; index as i;" (click)="view(glp, i)">
             <ion-item>
               <ion-label slot="start">
-                <ion-img [src]="'data:image/png;base64,'+glp?.licensePlate?.image"
+                <ion-img [src]="imageBaseUrl+glp?.licensePlate?.licensePlateId"
                   [alt]="glp?.licensePlate?.state?.name" width="125px;"></ion-img>
               </ion-label>
               <ion-label slot="">

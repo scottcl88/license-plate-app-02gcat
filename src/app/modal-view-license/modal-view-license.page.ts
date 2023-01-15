@@ -5,6 +5,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { IonSearchbar, ModalController, PopoverController, ToastController } from '@ionic/angular';
 import { NGXLogger } from 'ngx-logger';
 import { GameLicensePlateModel, LicensePlateModel } from 'src/api';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-modal-view-license',
@@ -16,6 +17,7 @@ export class ModalViewLicensePage implements OnInit {
   @ViewChild(IonSearchbar) searchBar: IonSearchbar;
 
   public glp: GameLicensePlateModel;
+  public imageBaseUrl: string = environment.API_BASE_URL + "/api/licensePlates/view/";
 
   constructor(private logger: NGXLogger, private modalController: ModalController, private popoverController: PopoverController, public toastController: ToastController) {
   }

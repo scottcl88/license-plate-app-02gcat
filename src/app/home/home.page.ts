@@ -2,12 +2,12 @@ import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, IonItemSliding, ModalController, PopoverController } from '@ionic/angular';
-import { CreateGameRequest, GameClient, GameId, GameLicensePlateModel, GameModel, LicenseGameRequest, LicensePlateId, LicensePlateModel, LicensePlatesClient, StateModel, UpdateGameRequest } from 'src/api';
+import { GameLicensePlateModel, GameModel, LicensePlateModel, LicensePlatesClient } from 'src/api';
 import { environment } from 'src/environments/environment';
 import { CoreUtilService } from '../core-utils';
 import { ModalSearchLicensePage } from '../modal-search-license/modal-search-license.page';
 import { ModalViewLicensePage } from '../modal-view-license/modal-view-license.page';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject } from 'rxjs';
 import { Account } from '../_models';
 import { AccountService } from '../account.service';
 import { UsMapService } from '../us-map/us-map.service';
@@ -25,18 +25,21 @@ export class HomePage implements OnInit {
 
   @ViewChildren('slides') slides: QueryList<IonItemSliding>;
 
-  testSignIn(){
-    GoogleGameServices.signIn();
-  }
-  testUi(){
-    GoogleGameServices.showSavedGamesUI();
-  }
-  testSave(){
-    GoogleGameServices.saveGame();
-  }
-  testLoad(){
-    GoogleGameServices.loadGame();
-  }
+  // testSignIn() {
+  //   GoogleGameServices.signIn();
+  // }
+  // testUi() {
+  //   GoogleGameServices.showSavedGamesUI();
+  // }
+  // testSave() {
+  //   GoogleGameServices.saveGame({ title: "TestTitle", data: "TestData" });
+  // }
+  // async testLoad() {
+  //   let result = await GoogleGameServices.loadGame();
+  //   console.log("testLoad finished: ", JSON.stringify(result));
+  // }
+
+  public imageBaseUrl: string = environment.API_BASE_URL + "/api/licensePlates/view/";
 
   public availableStates: string[] = [];
 
@@ -76,23 +79,31 @@ export class HomePage implements OnInit {
     await this.coreUtilService.presentLoading();
     this.isLoading = true;
 
-    this.accountService.account
-      .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe(res => {
-        console.log("Profile checking isAuthenticated", res);
-        this.account = res;
-        this.isAuthenticated = (this.account && this.account?.token) ? true : false;
+    // this.accountService.account
+    //   .pipe(takeUntil(this.ngUnsubscribe))
+    //   .subscribe(res => {
+    //     console.log("Profile checking isAuthenticated", res);
+    //     this.account = res;
+    //     this.isAuthenticated = (this.account && this.account?.token) ? true : false;
 
-
-        if (this.isAuthenticated) {
-          this.isLoading = true;
-          this.getLicensePlates();
-        } else {
-          this.coreUtilService.dismissLoading();
-          this.isLoading = false;
-          this.goToLogin();
-        }
-      });
+    //     if (this.isAuthenticated) {
+    //       this.isLoading = true;
+    //       this.getLicensePlates();
+    //     } else {
+    //       this.coreUtilService.dismissLoading();
+    //       this.isLoading = false;
+    //       this.goToLogin();
+    //     }
+    //   });
+    this.isAuthenticated = (await GoogleGameServices.isAuthenticated()).isAuthenticated;
+    console.log("User isAuthenticated: ", this.isAuthenticated);
+    this.getLicensePlates();
+    if (this.isAuthenticated) {
+      this.isLoading = true;
+    } else {
+      this.coreUtilService.dismissLoading();
+      this.isLoading = false;
+    }
   }
 
   goToLogin() {
@@ -174,8 +185,10 @@ export class HomePage implements OnInit {
     modal.present();
     const { data } = await modal.onDidDismiss();
     console.log('Select Modal Dismissed: ', data);
-    if (data && data.saved && data.title) {
-      this.saveGame(data.title);
+    if (data && data.saved && data.title && this.currentGame) {
+      // this.saveGame(data.title);
+      this.currentGame.title = data.title;
+      this.saveGameData();
     }
     modal?.dismiss();
   }
@@ -198,51 +211,43 @@ export class HomePage implements OnInit {
     }
   }
 
-  getCurrentGame() {
-    let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
-    gameClient.getCurrent().subscribe({
-      next: (res) => {
-        console.log("Successfully got current game");
-        this.currentGame = res;
-        if (this.currentGame == null) {
-          this.startNewGame("");
-        } else {
-          this.updateLicensePlateLists();
-          this.coreUtilService.dismissLoading();
-        }
-      }, error: (err) => {
-        console.error("Start new game error: ", err);
-        this.coreUtilService.presentToastError();
-      }
-    });
-  }
+  // getCurrentGame() {
+  //   let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
+  //   gameClient.getCurrent().subscribe({
+  //     next: (res) => {
+  //       console.log("Successfully got current game");
+  //       this.currentGame = res;
+  //       if (this.currentGame == null) {
+  //         this.startNewGame("");
+  //       } else {
+  //         this.updateLicensePlateLists();
+  //         this.coreUtilService.dismissLoading();
+  //       }
+  //     }, error: (err) => {
+  //       console.error("Start new game error: ", err);
+  //       this.coreUtilService.presentToastError();
+  //     }
+  //   });
+  // }
 
   startNewGame(title: string) {
     if (this.currentGame != null) {
       this.confirmNewGame();
       return;
     }
-    let request = new CreateGameRequest();
-    request.title = title;
-    let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
-    gameClient.create(request).subscribe({
-      next: (res) => {
-        console.log("Successfully started game");
-        this.currentGame = res ?? new GameModel();
-        if (this.currentGame.gameNumber == 0) {
-          this.currentGame.gameNumber = 1;
-        }
-        this.availableLicensePlates = this.allLicensePlates.slice(0);
-        this.filteredLicensePlates = this.allLicensePlates.slice(0);
-        this.updateLicensePlateLists();
-        this.usMapService.coordinates.forEach(x => x.c = this.usMapService.defaultStateColor);
-        this.coreUtilService.dismissLoading();
-      }, error: (err) => {
-        console.error("Start new game error: ", err);
-        this.coreUtilService.presentToastError();
-        this.coreUtilService.dismissLoading();
-      }
-    });
+    this.currentGame = new GameModel();
+    if (this.currentGame.gameNumber == 0) {
+      this.currentGame.gameNumber = 1;
+    }
+    this.currentGame.title = title;
+
+    this.saveGameData();
+
+    this.availableLicensePlates = this.allLicensePlates.slice(0);
+    this.filteredLicensePlates = this.allLicensePlates.slice(0);
+    this.updateLicensePlateLists();
+    this.usMapService.coordinates.forEach(x => x.c = this.usMapService.defaultStateColor);
+    this.coreUtilService.dismissLoading();
   }
 
   async confirmNewGame() {
@@ -274,54 +279,48 @@ export class HomePage implements OnInit {
 
   addLicensePlateToGame(lp: LicensePlateModel) {
     console.log("Adding license plate: ", lp);
-    let request = new LicenseGameRequest();
-    request.gameId = new GameId();
-    request.gameId.value = this.currentGame?.gameId;
-    request.licensePlateId = new LicensePlateId();
-    request.licensePlateId.value = lp.licensePlateId;
-    let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
-    gameClient.add(request).subscribe({
-      next: (res) => {
-        console.log("Successful add to game");
-        this.currentGame = res;
-        this.availableLicensePlates = this.allLicensePlates.slice(0);
-        this.updateLicensePlateLists();
-        let usMapIndex = this.usMapService.coordinates.findIndex(x => x.id == lp?.state?.abbreviation);
-        if (usMapIndex >= 0) {
-          console.log("Changing state color: ", usMapIndex);
-          this.usMapService.coordinates[usMapIndex].c = this.usMapService.selectedStateColor;
-        }
-      }, error: (err) => {
-        console.error("add to game error: ", err);
-        this.coreUtilService.presentToastError();
+
+    let largestGlpId = 0;
+    this.currentGame?.licensePlates?.forEach(glp => {
+      if (glp && glp.gameLicensePlateId && glp.gameLicensePlateId > largestGlpId) {
+        largestGlpId = glp.gameLicensePlateId;
       }
     });
+
+    let newGlp = new GameLicensePlateModel();
+    newGlp.gameLicensePlateId = largestGlpId;
+    newGlp.licensePlate = new LicensePlateModel();
+    newGlp.licensePlate.init(lp);
+
+    console.log("Adding new glp with id: ", largestGlpId);
+    this.currentGame?.licensePlates?.push(newGlp);
+
+    this.saveGameData();
+
+    this.availableLicensePlates = this.allLicensePlates.slice(0);
+    this.updateLicensePlateLists();
+    let usMapIndex = this.usMapService.coordinates.findIndex(x => x.id == lp?.state?.abbreviation);
+    if (usMapIndex >= 0) {
+      console.log("Changing state color: ", usMapIndex);
+      this.usMapService.coordinates[usMapIndex].c = this.usMapService.defaultStateColor;
+    }
   }
 
-  removeLicensePlateFromGame(lp: GameLicensePlateModel) {
-    let request = new LicenseGameRequest();
-    request.gameId = new GameId();
-    request.gameId.value = this.currentGame?.gameId;
-    request.licensePlateId = new LicensePlateId();
-    request.licensePlateId.value = lp?.licensePlate?.licensePlateId;
-    let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
-    gameClient.remove(request).subscribe({
-      next: (res) => {
-        console.log("Successful remove from game");
-        this.currentGame = res;
-        this.availableLicensePlates = this.allLicensePlates.slice(0);
-        this.filteredLicensePlates = this.allLicensePlates.slice(0);
-        this.updateLicensePlateLists();
-        let usMapIndex = this.usMapService.coordinates.findIndex(x => x.id == lp?.licensePlate?.state?.abbreviation);
-        if (usMapIndex >= 0) {
-          console.log("Changing state color: ", usMapIndex);
-          this.usMapService.coordinates[usMapIndex].c = this.usMapService.defaultStateColor;
-        }
-      }, error: (err) => {
-        console.error("remove from error: ", err);
-        this.coreUtilService.presentToastError();
-      }
-    });
+  removeLicensePlateFromGame(glp: GameLicensePlateModel) {
+    console.log("Removing license plate: ", glp);
+    let foundGlpIndex = this.currentGame?.licensePlates?.findIndex(x => x.gameLicensePlateId == glp?.gameLicensePlateId);
+    if (foundGlpIndex) {
+      this.currentGame?.licensePlates?.slice(foundGlpIndex, 1);
+    }
+    this.saveGameData();
+    this.availableLicensePlates = this.allLicensePlates.slice(0);
+    this.filteredLicensePlates = this.allLicensePlates.slice(0);
+    this.updateLicensePlateLists();
+    let usMapIndex = this.usMapService.coordinates.findIndex(x => x.id == glp?.licensePlate?.state?.abbreviation);
+    if (usMapIndex >= 0) {
+      console.log("Changing state color: ", usMapIndex);
+      this.usMapService.coordinates[usMapIndex].c = this.usMapService.defaultStateColor;
+    }
   }
 
   getLicensePlates() {
@@ -332,7 +331,8 @@ export class HomePage implements OnInit {
         this.allLicensePlates = res.slice(0);
         this.availableLicensePlates = res.slice(0);
         this.filteredLicensePlates = res.slice(0);
-        this.getCurrentGame();
+        //this.getCurrentGame();
+        this.loadGameData();
       }, error: (err) => {
         console.error("retrieved license plates error: ", err);
         this.coreUtilService.presentToastError();
@@ -341,6 +341,7 @@ export class HomePage implements OnInit {
   }
 
   updateLicensePlateLists() {
+    console.log("Updating lists with count: ", this.currentGame?.licensePlates?.length);
     this.currentGame?.licensePlates?.forEach(lp => {
       let availableLpIndex = this.availableLicensePlates.findIndex(x => x.licensePlateId == lp.licensePlate?.licensePlateId);
       if (availableLpIndex >= 0) {
@@ -360,20 +361,54 @@ export class HomePage implements OnInit {
     this.currentLicensePlates = this.currentGame?.licensePlates ?? [];
   }
 
-  async saveGame(title: string) {
-    let request = new UpdateGameRequest();
-    request.title = title;
-    request.gameId = new GameId();
-    request.gameId.value = this.currentGame?.gameId;
-    let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
-    gameClient.update(request).subscribe({
-      next: (res) => {
-        console.log("Successfully updated game");
-        this.currentGame = res ?? [];
-      }, error: (err) => {
-        console.error("updated game error: ", err);
-        this.coreUtilService.presentToastError();
+  // async saveGame(title: string) {
+  //   let request = new UpdateGameRequest();
+  //   request.title = title;
+  //   request.gameId = new GameId();
+  //   request.gameId.value = this.currentGame?.gameId;
+  //   let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
+  //   gameClient.update(request).subscribe({
+  //     next: (res) => {
+  //       console.log("Successfully updated game");
+  //       this.currentGame = res ?? [];
+  //     }, error: (err) => {
+  //       console.error("updated game error: ", err);
+  //       this.coreUtilService.presentToastError();
+  //     }
+  //   });
+  // }
+
+  async saveGameData() {
+    if (!this.isAuthenticated) {
+      return;
+    }
+    let dataObj = this.currentGame?.clone();
+    dataObj?.licensePlates?.forEach(x => {
+      if (x.licensePlate?.image) {
+        x.licensePlate.image = "";
       }
     });
+    GoogleGameServices.saveGame({ title: "CurrentGame", data: JSON.stringify(dataObj) });
+  }
+  async loadGameData() {
+    if (!this.isAuthenticated) {
+      return;
+    }
+    try {
+      let gameData = await GoogleGameServices.loadGame();
+      let parseObj = JSON.parse(gameData.data);
+      this.currentGame = JSON.parse(parseObj?.games?.CurrentGame);
+      console.log("GameData loaded currentGame: ", JSON.stringify(this.currentGame));
+      if (this.currentGame == null) {
+        this.startNewGame("");
+      } else {
+        this.updateLicensePlateLists();
+        this.coreUtilService.dismissLoading();
+      }
+    } catch (err) {
+      console.error("Failed to loadGame from google game services");
+      this.startNewGame("");
+      this.coreUtilService.dismissLoading();
+    }
   }
 }
