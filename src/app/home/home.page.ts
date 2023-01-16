@@ -304,7 +304,7 @@ export class HomePage implements OnInit {
       this.currentGame = this.gameService.getCurrentGame();
       if (this.currentGame == null) {
         console.log("Current Game not found after getLicensePlates ", this.currentGame);
-        this.startNewGame("");
+       // this.startNewGame("");
         this.coreUtilService.dismissLoading();
       } else {
         this.updateLicensePlateLists();

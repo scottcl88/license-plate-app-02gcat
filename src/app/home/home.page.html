@@ -3,7 +3,8 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>{{this.currentGame?.title}}</ion-title>
+    <ion-title *ngIf="currentGame != null">{{this.currentGame?.title}}</ion-title>
+    <ion-title *ngIf="currentGame == null">License Plate Mania</ion-title>
     <ion-icon slot="end" name="ellipsis-vertical-outline" id="click-trigger"
       style="font-size: 20px; margin-right: 15px;"></ion-icon>
   </ion-toolbar>

@@ -34,7 +34,7 @@ export class GameService implements OnInit {
     if (!this.hasLoaded) {
       await this.loadGameData();
     }
-    return this.allGames;
+    return this.allGames.filter(x => x.deletedDateTime == undefined);
   }
 
   getNewGameId() {
@@ -63,18 +63,18 @@ export class GameService implements OnInit {
       console.error("GameId already exists");
       return;
     }
-    let gameData = game?.clone();
-    gameData?.licensePlates?.forEach(x => {
+    //let gameData = game?.clone();
+    game?.licensePlates?.forEach(x => {
       if (x.licensePlate?.image) {
         x.licensePlate.image = "";
       }
     });
 
-    if (!gameData.title) {
-      if (gameData.gameNumber && gameData.gameNumber > 0) {
-        gameData.title = `Game #` + gameData.gameNumber;
+    if (!game.title) {
+      if (game.gameNumber && game.gameNumber > 0) {
+        game.title = `Game #` + game.gameNumber;
       } else {
-        gameData.title = `Game #` + (this.allGames.length + 1);
+        game.title = `Game #` + (this.allGames.length + 1);
       }
     }
 
@@ -84,11 +84,14 @@ export class GameService implements OnInit {
       }
     });
 
-    gameData.startedDateTime = new Date();
+    game.startedDateTime = new Date();
 
-    console.log("Adding game: ", gameData, gameData.toJSON());
+    console.log("Adding game: ", game, game.toJSON());
+    this.allGames.push(game);
 
-    this.allGames.push(gameData);
+    this.fixGamesJson();
+    this.fixDates();
+    
     let gamesJson: any[] = [];
     this.allGames.forEach(x => gamesJson.push(x.toJSON()));
     let dataObj = { title: "games", data: JSON.stringify(gamesJson) };

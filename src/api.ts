@@ -386,6 +386,67 @@ export class GameClient extends ClientBase {
     }
 
     /**
+     * Sends an email with game data as json attachment
+     * @param body (optional) 
+     * @return Success
+     */
+    emailGameData(body: EmailGameDataRequest | undefined, httpContext?: HttpContext): Observable<boolean> {
+        let url_ = this.baseUrl + "/api/game/email-game-data";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            context: httpContext,
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
+            })
+        };
+
+        return _observableFrom(this.transformOptions(options_)).pipe(_observableMergeMap(transformedOptions_ => {
+            return this.http.request("post", url_, transformedOptions_);
+        })).pipe(_observableMergeMap((response_: any) => {
+            return this.transformResult(url_, response_, (r) => this.processEmailGameData(r as any));
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.transformResult(url_, response_, (r) => this.processEmailGameData(r as any));
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<boolean>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<boolean>;
+        }));
+    }
+
+    protected processEmailGameData(response: HttpResponseBase): Observable<boolean> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
      * Get all games
      * @return Success
      */
@@ -1183,6 +1244,59 @@ export class LicensePlatesClient extends ClientBase {
                 result200 = <any>null;
             }
             return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return Success
+     */
+    view(licensePlateId: number, httpContext?: HttpContext): Observable<void> {
+        let url_ = this.baseUrl + "/api/licensePlates/view/{licensePlateId}";
+        if (licensePlateId === undefined || licensePlateId === null)
+            throw new Error("The parameter 'licensePlateId' must be defined.");
+        url_ = url_.replace("{licensePlateId}", encodeURIComponent("" + licensePlateId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            context: httpContext,
+            headers: new HttpHeaders({
+            })
+        };
+
+        return _observableFrom(this.transformOptions(options_)).pipe(_observableMergeMap(transformedOptions_ => {
+            return this.http.request("get", url_, transformedOptions_);
+        })).pipe(_observableMergeMap((response_: any) => {
+            return this.transformResult(url_, response_, (r) => this.processView(r as any));
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.transformResult(url_, response_, (r) => this.processView(r as any));
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<void>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<void>;
+        }));
+    }
+
+    protected processView(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return _observableOf(null as any);
             }));
         } else if (status !== 200 && status !== 204) {
             return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
@@ -2585,8 +2699,8 @@ export class UserClient extends ClientBase {
     /**
      * @return Success
      */
-    delete(httpContext?: HttpContext): Observable<GenericResult> {
-        let url_ = this.baseUrl + "/api/user/delete";
+    deleteCurrentUser(httpContext?: HttpContext): Observable<GenericResult> {
+        let url_ = this.baseUrl + "/api/user/delete-current-user";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_ : any = {
@@ -2601,11 +2715,11 @@ export class UserClient extends ClientBase {
         return _observableFrom(this.transformOptions(options_)).pipe(_observableMergeMap(transformedOptions_ => {
             return this.http.request("delete", url_, transformedOptions_);
         })).pipe(_observableMergeMap((response_: any) => {
-            return this.transformResult(url_, response_, (r) => this.processDelete(r as any));
+            return this.transformResult(url_, response_, (r) => this.processDeleteCurrentUser(r as any));
         })).pipe(_observableCatch((response_: any) => {
             if (response_ instanceof HttpResponseBase) {
                 try {
-                    return this.transformResult(url_, response_, (r) => this.processDelete(r as any));
+                    return this.transformResult(url_, response_, (r) => this.processDeleteCurrentUser(r as any));
                 } catch (e) {
                     return _observableThrow(e) as any as Observable<GenericResult>;
                 }
@@ -2614,7 +2728,66 @@ export class UserClient extends ClientBase {
         }));
     }
 
-    protected processDelete(response: HttpResponseBase): Observable<GenericResult> {
+    protected processDeleteCurrentUser(response: HttpResponseBase): Observable<GenericResult> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = GenericResult.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return Success
+     */
+    deleteByUserId(body: UserId | undefined, httpContext?: HttpContext): Observable<GenericResult> {
+        let url_ = this.baseUrl + "/api/user/delete-by-user-id";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            context: httpContext,
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
+            })
+        };
+
+        return _observableFrom(this.transformOptions(options_)).pipe(_observableMergeMap(transformedOptions_ => {
+            return this.http.request("delete", url_, transformedOptions_);
+        })).pipe(_observableMergeMap((response_: any) => {
+            return this.transformResult(url_, response_, (r) => this.processDeleteByUserId(r as any));
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.transformResult(url_, response_, (r) => this.processDeleteByUserId(r as any));
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<GenericResult>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<GenericResult>;
+        }));
+    }
+
+    protected processDeleteByUserId(response: HttpResponseBase): Observable<GenericResult> {
         const status = response.status;
         const responseBlob =
             response instanceof HttpResponse ? response.body :
@@ -3206,6 +3379,53 @@ export interface IDocumentModel {
     byteSize?: number;
     bytes?: string | undefined;
     documentKey?: string;
+}
+
+export class EmailGameDataRequest implements IEmailGameDataRequest {
+    email!: string;
+    jsonData!: string;
+
+    constructor(data?: IEmailGameDataRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.email = _data["email"];
+            this.jsonData = _data["jsonData"];
+        }
+    }
+
+    static fromJS(data: any): EmailGameDataRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new EmailGameDataRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["email"] = this.email;
+        data["jsonData"] = this.jsonData;
+        return data;
+    }
+
+    clone(): EmailGameDataRequest {
+        const json = this.toJSON();
+        let result = new EmailGameDataRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IEmailGameDataRequest {
+    email: string;
+    jsonData: string;
 }
 
 export class ForgotPasswordRequest implements IForgotPasswordRequest {

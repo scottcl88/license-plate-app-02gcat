@@ -71,7 +71,6 @@ export class HistoryPage implements OnInit {
     });
 
     await alert.present();
-    this.popoverController.dismiss();
   }
   async getGames() {
     try {

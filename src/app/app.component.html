@@ -4,6 +4,7 @@
       <ion-content>
         <ion-list id="inbox-list">
           <ion-list-header>License Plate Mania</ion-list-header>
+          <ion-note>v{{package.version}}</ion-note>
           <ion-menu-toggle auto-hide="false">
             <span *ngFor="let p of appPages; index as i">
               <ion-item routerDirection="root" [routerLink]="[p.url]" lines="none" detail="false"

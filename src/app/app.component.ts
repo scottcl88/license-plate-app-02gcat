@@ -11,6 +11,7 @@ export class AppComponent {
     { title: 'Game List', url: '/history', icon: 'list' },
     { title: 'Profile', url: '/profile', icon: 'person' }
   ];
+  public package: any = require('../../package.json');
   constructor(public router: Router) { }
   getPath(){
     console.log(this.router.url);
