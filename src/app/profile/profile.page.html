@@ -1,11 +1,17 @@
 <!--
-Copyright 2022 Scott Lewis, All rights reserved.
+Copyright 2023 Scott Lewis, All rights reserved.
 -->
 <app-header title="Profile">
 </app-header>
 <ion-content>
   <div *ngIf="!isAuthenticated" class="text-center">
-    <p style="text-align: center;">You are not signed into Google Play Games. Your data is stored locally.</p>
+    <p style="text-align: center;">You are not signed into Google Play Games.<br>Your data is stored locally.</p>
+    <ion-item button (click)="signIn()">
+      <ion-label color="primary">
+        Sign into Google Play
+      </ion-label>
+      <ion-icon name="log-in-outline" style="font-size: 24px;height: 48px;"></ion-icon>
+    </ion-item>
     <ion-item button (click)="confirmDelete()">
       <ion-label color="danger">
         Delete Data

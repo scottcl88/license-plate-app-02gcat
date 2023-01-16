@@ -1,12 +1,12 @@
 /**
-Copyright 2022 Scott Lewis, All rights reserved.
+Copyright 2023 Scott Lewis, All rights reserved.
 **/
-import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { IonInput, IonSearchbar, ModalController, PopoverController, ToastController } from '@ionic/angular';
+import { IonInput, ModalController, ToastController } from '@ionic/angular';
 import { NGXLogger } from 'ngx-logger';
 import { GameClient, GameModel, LicensePlateModel } from 'src/api';
 import { environment } from 'src/environments/environment';
+import { GameService } from '../game.service';
 
 @Component({
   selector: 'app-modal-edit-game',
@@ -22,7 +22,7 @@ export class ModalEditGamePage implements OnInit {
   public isNew: boolean = false;
   public disabled: boolean = false;
 
-  constructor(private logger: NGXLogger, private httpClient: HttpClient, private modalController: ModalController, private popoverController: PopoverController, public toastController: ToastController) {
+  constructor(private logger: NGXLogger, private modalController: ModalController, private gameService: GameService, public toastController: ToastController) {
   }
 
   async ngOnInit() {
@@ -38,20 +38,12 @@ export class ModalEditGamePage implements OnInit {
     console.log("Game title: ", this.title);
   }
 
-  getAllGames() {
-    let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
-    gameClient.getAll().subscribe({
-      next: (res) => {
-        this.allGames = res;
-        if (this.isNew) {
-          let gameNumber = this.allGames.length + 1;
-          this.title = `Game #${gameNumber}`;
-        }
-        console.log("Got all games: ", res);
-      }, error: (err) => {
-        console.error("Error on getAll: ", err);
-      }
-    });
+  async getAllGames() {
+    this.allGames = await this.gameService.getGames();
+    if (this.isNew) {
+      let gameNumber = this.allGames.length + 1;
+      this.title = `Game #${gameNumber}`;
+    }
   }
 
   inputOnChange(e: any) {

@@ -6,17 +6,18 @@ import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
-import { AccountService } from './account.service';
 import { StorageService } from './storage.service';
 
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
 
-import { appInitializer, ErrorInterceptor, JwtInterceptor } from './_helpers';
+import { appInitializer } from './_helpers';
 import { LoggerModule, NgxLoggerLevel } from 'ngx-logger';
 import { CommonModule } from '@angular/common';
 import { IonicStorageModule } from '@ionic/storage-angular';
 import { DateFnsModule } from 'ngx-date-fns';
 import { environment } from 'src/environments/environment';
+import * as cordovaSQLiteDriver from 'localforage-cordovasqlitedriver';
+import { Drivers, Storage } from '@ionic/storage';
 
 @NgModule({
   declarations: [AppComponent],
@@ -33,15 +34,15 @@ import { environment } from 'src/environments/environment';
     DateFnsModule.forRoot(),
     AppRoutingModule,
     HttpClientModule,
-    IonicStorageModule.forRoot(),
+    IonicStorageModule.forRoot({
+      driverOrder: [cordovaSQLiteDriver._driver, Drivers.IndexedDB, Drivers.LocalStorage]
+    }),
     CommonModule,
     RouterModule,
-    // BrowserAnimationsModule,
   ],
-  // imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    { provide: APP_INITIALIZER, useFactory: appInitializer, multi: true, deps: [AccountService, StorageService] },
+    { provide: APP_INITIALIZER, useFactory: appInitializer, multi: true, deps: [StorageService] },
   ],
   bootstrap: [AppComponent],
 })

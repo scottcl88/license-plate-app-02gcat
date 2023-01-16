@@ -1,21 +1,14 @@
 /**
-Copyright 2022 Scott Lewis, All rights reserved.
+Copyright 2023 Scott Lewis, All rights reserved.
 **/
 /**
- * Copyright 2022 Scott Lewis, All rights reserved.
+ * Copyright 2023 Scott Lewis, All rights reserved.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { environment } from '../../environments/environment';
-import { HttpClient } from '@angular/common/http';
-import { UserClient } from 'src/api';
 import { StorageService } from '../storage.service';
-import { AlertController, LoadingController, ModalController, PopoverController, ToastController } from '@ionic/angular';
-import { NGXLogger } from 'ngx-logger';
+import { AlertController, ModalController, PopoverController } from '@ionic/angular';
 import { CoreUtilService } from '../core-utils';
-import { AccountService } from '../account.service';
 import { Subject } from 'rxjs';
-import { Account } from '../_models';
 import { GoogleGameServices } from 'capacitor-google-game-services';
 
 @Component({
@@ -72,6 +65,10 @@ export class ProfilePage implements OnInit, OnDestroy {
     console.log("Player loaded DisplayName: ", player.displayName);
     console.log("Player loaded iconImageUrl: ", player.iconImageUrl);
     this.coreUtilService.dismissLoading();
+  }
+
+  signIn(){
+    GoogleGameServices.signIn();
   }
 
   doDelete() {

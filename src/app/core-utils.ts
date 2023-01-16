@@ -1,10 +1,8 @@
 /**
-Copyright 2022 Scott Lewis, All rights reserved.
+Copyright 2023 Scott Lewis, All rights reserved.
 **/
-import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Router } from "@angular/router";
-// import { AuthService } from "@auth0/auth0-angular";
 import { LoadingController, ToastController } from "@ionic/angular";
 import { NGXLogger } from "ngx-logger";
 

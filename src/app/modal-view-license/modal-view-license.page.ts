@@ -1,5 +1,5 @@
 /**
-Copyright 2022 Scott Lewis, All rights reserved.
+Copyright 2023 Scott Lewis, All rights reserved.
 **/
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { IonSearchbar, ModalController, PopoverController, ToastController } from '@ionic/angular';

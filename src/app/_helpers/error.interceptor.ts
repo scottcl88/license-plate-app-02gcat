@@ -2,7 +2,6 @@ import { Injectable, OnDestroy, OnInit } from '@angular/core';
 import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
 import { Observable, Subject, throwError } from 'rxjs';
 import { catchError, takeUntil } from 'rxjs/operators';
-import { AccountService } from '../account.service';
 import { Account } from '../_models';
 
 @Injectable()
@@ -10,16 +9,11 @@ export class ErrorInterceptor implements HttpInterceptor, OnInit, OnDestroy {
     private ngUnsubscribe = new Subject();
     public account: Account | null;
 
-    constructor(private accountService: AccountService) {
+    constructor() {
         this.ngOnInit();
     }
 
-    ngOnInit(): void {
-        this.accountService.account
-            .pipe(takeUntil(this.ngUnsubscribe))
-            .subscribe(res => {
-                this.account = res;
-            });
+    ngOnInit(): void {      
     }
 
     ngOnDestroy(): void {
@@ -31,8 +25,7 @@ export class ErrorInterceptor implements HttpInterceptor, OnInit, OnDestroy {
         return next.handle(request).pipe(catchError(err => {
             if ([401, 403].includes(err.status) && this.account && this.account.token) {
                 // auto logout if 401 or 403 response returned from api
-                console.log("Error interceptor. Logging out");
-                this.accountService.logout();
+                console.log("Error interceptor; is invalid");
             }
 
             const error = (err && err.error && err.error.message) || err.statusText;

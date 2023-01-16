@@ -9,6 +9,9 @@
 
 <ion-content [fullscreen]="true">
   <div id="container">
+    <div *ngIf="this.games.length <= 0">
+      <p>There are no games.</p>
+    </div>
     <div style="height: calc(90vh); overflow-y: scroll;">
       <ion-card *ngFor="let game of this.games; index as i" [color]="game.finishedDateTime ? '' : 'success'">
         <ion-card-header>

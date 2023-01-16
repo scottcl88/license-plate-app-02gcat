@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectorRef, Component, OnInit, QueryList, ViewChildren } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { Router } from '@angular/router';
 import { AlertController, IonItemSliding, ModalController, PopoverController } from '@ionic/angular';
 import { GameLicensePlateModel, GameModel, LicensePlateModel, LicensePlatesClient } from 'src/api';
 import { environment } from 'src/environments/environment';
@@ -9,11 +9,10 @@ import { ModalSearchLicensePage } from '../modal-search-license/modal-search-lic
 import { ModalViewLicensePage } from '../modal-view-license/modal-view-license.page';
 import { Subject } from 'rxjs';
 import { Account } from '../_models';
-import { AccountService } from '../account.service';
 import { UsMapService } from '../us-map/us-map.service';
 import { ModalViewImagePage } from '../modal-view-image/modal-view-image.page';
 import { ModalEditGamePage } from '../modal-edit-game/modal-edit-game.page';
-import { GoogleGameServices } from 'capacitor-google-game-services';
+import { GameService } from '../game.service';
 
 @Component({
   selector: 'app-home',
@@ -25,20 +24,6 @@ export class HomePage implements OnInit {
 
   @ViewChildren('slides') slides: QueryList<IonItemSliding>;
 
-  // testSignIn() {
-  //   GoogleGameServices.signIn();
-  // }
-  // testUi() {
-  //   GoogleGameServices.showSavedGamesUI();
-  // }
-  // testSave() {
-  //   GoogleGameServices.saveGame({ title: "TestTitle", data: "TestData" });
-  // }
-  // async testLoad() {
-  //   let result = await GoogleGameServices.loadGame();
-  //   console.log("testLoad finished: ", JSON.stringify(result));
-  // }
-
   public imageBaseUrl: string = environment.API_BASE_URL + "/api/licensePlates/view/";
 
   public availableStates: string[] = [];
@@ -48,7 +33,7 @@ export class HomePage implements OnInit {
   public currentLicensePlates: GameLicensePlateModel[] = [];
   public filteredLicensePlates: LicensePlateModel[] = [];
 
-  public currentGame: GameModel | null = null;
+  public currentGame: GameModel | undefined = undefined;
 
   public isAuthenticated: boolean = false;
   private isLoading: boolean = false;
@@ -70,8 +55,8 @@ export class HomePage implements OnInit {
   public sortArray: string[] = ["Name Asc", "Name Desc", "Added Asc", "Added Desc"];
   public currentSort: number = 0;
 
-  constructor(private activatedRoute: ActivatedRoute, private usMapService: UsMapService, private changeDetectorRef: ChangeDetectorRef,
-    private router: Router, private accountService: AccountService, private popoverController: PopoverController, private alertController: AlertController, private modalController: ModalController, private httpClient: HttpClient, private coreUtilService: CoreUtilService) { }
+  constructor(private usMapService: UsMapService, private gameService: GameService, private router: Router, private popoverController: PopoverController, private alertController: AlertController,
+    private modalController: ModalController, private coreUtilService: CoreUtilService, private httpClient: HttpClient) { }
 
   async ngOnInit() {
     this.availableStates = HomePage.STATES;
@@ -79,31 +64,9 @@ export class HomePage implements OnInit {
     await this.coreUtilService.presentLoading();
     this.isLoading = true;
 
-    // this.accountService.account
-    //   .pipe(takeUntil(this.ngUnsubscribe))
-    //   .subscribe(res => {
-    //     console.log("Profile checking isAuthenticated", res);
-    //     this.account = res;
-    //     this.isAuthenticated = (this.account && this.account?.token) ? true : false;
-
-    //     if (this.isAuthenticated) {
-    //       this.isLoading = true;
-    //       this.getLicensePlates();
-    //     } else {
-    //       this.coreUtilService.dismissLoading();
-    //       this.isLoading = false;
-    //       this.goToLogin();
-    //     }
-    //   });
-    this.isAuthenticated = (await GoogleGameServices.isAuthenticated()).isAuthenticated;
+    this.isAuthenticated = await this.gameService.getIsAuthenticated();
     console.log("User isAuthenticated: ", this.isAuthenticated);
     this.getLicensePlates();
-    if (this.isAuthenticated) {
-      this.isLoading = true;
-    } else {
-      this.coreUtilService.dismissLoading();
-      this.isLoading = false;
-    }
   }
 
   goToLogin() {
@@ -186,9 +149,8 @@ export class HomePage implements OnInit {
     const { data } = await modal.onDidDismiss();
     console.log('Select Modal Dismissed: ', data);
     if (data && data.saved && data.title && this.currentGame) {
-      // this.saveGame(data.title);
       this.currentGame.title = data.title;
-      this.saveGameData();
+      this.gameService.saveGame(this.currentGame);
     }
     modal?.dismiss();
   }
@@ -211,37 +173,24 @@ export class HomePage implements OnInit {
     }
   }
 
-  // getCurrentGame() {
-  //   let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
-  //   gameClient.getCurrent().subscribe({
-  //     next: (res) => {
-  //       console.log("Successfully got current game");
-  //       this.currentGame = res;
-  //       if (this.currentGame == null) {
-  //         this.startNewGame("");
-  //       } else {
-  //         this.updateLicensePlateLists();
-  //         this.coreUtilService.dismissLoading();
-  //       }
-  //     }, error: (err) => {
-  //       console.error("Start new game error: ", err);
-  //       this.coreUtilService.presentToastError();
-  //     }
-  //   });
-  // }
-
-  startNewGame(title: string) {
+  async startNewGame(title: string) {
     if (this.currentGame != null) {
       this.confirmNewGame();
       return;
     }
     this.currentGame = new GameModel();
-    if (this.currentGame.gameNumber == 0) {
-      this.currentGame.gameNumber = 1;
-    }
-    this.currentGame.title = title;
 
-    this.saveGameData();
+    if (title) {
+      this.currentGame.title = title;
+    } else {
+      let allGames = await this.gameService.getGames();
+      this.currentGame.title = `Game #` + (allGames.length + 1);
+    }
+    this.currentGame.licensePlates = [];
+    this.currentGame.startedDateTime = new Date();
+    this.currentGame.gameId = this.gameService.getNewGameId();
+
+    this.gameService.addGame(this.currentGame);
 
     this.availableLicensePlates = this.allLicensePlates.slice(0);
     this.filteredLicensePlates = this.allLicensePlates.slice(0);
@@ -266,7 +215,7 @@ export class HomePage implements OnInit {
           text: 'OK',
           role: 'confirm',
           handler: () => {
-            this.currentGame = null;
+            this.currentGame = undefined;
             this.showStartGameModal();
           },
         },
@@ -274,14 +223,22 @@ export class HomePage implements OnInit {
     });
 
     await alert.present();
-    this.popoverController.dismiss();
   }
 
   addLicensePlateToGame(lp: LicensePlateModel) {
     console.log("Adding license plate: ", lp);
 
+    if (!this.currentGame) {
+      console.error("No current game");
+      return;
+    }
+
+    if (!this.currentGame.licensePlates) {
+      this.currentGame.licensePlates = [];
+    }
+
     let largestGlpId = 0;
-    this.currentGame?.licensePlates?.forEach(glp => {
+    this.currentGame.licensePlates.forEach(glp => {
       if (glp && glp.gameLicensePlateId && glp.gameLicensePlateId > largestGlpId) {
         largestGlpId = glp.gameLicensePlateId;
       }
@@ -293,46 +250,45 @@ export class HomePage implements OnInit {
     newGlp.licensePlate.init(lp);
 
     console.log("Adding new glp with id: ", largestGlpId);
-    this.currentGame?.licensePlates?.push(newGlp);
+    this.currentGame.licensePlates.push(newGlp);
 
-    this.saveGameData();
+    this.gameService.saveGame(this.currentGame);
 
     this.availableLicensePlates = this.allLicensePlates.slice(0);
     this.updateLicensePlateLists();
-    let usMapIndex = this.usMapService.coordinates.findIndex(x => x.id == lp?.state?.abbreviation);
-    if (usMapIndex >= 0) {
-      console.log("Changing state color: ", usMapIndex);
-      this.usMapService.coordinates[usMapIndex].c = this.usMapService.defaultStateColor;
-    }
   }
 
   removeLicensePlateFromGame(glp: GameLicensePlateModel) {
     console.log("Removing license plate: ", glp);
-    let foundGlpIndex = this.currentGame?.licensePlates?.findIndex(x => x.gameLicensePlateId == glp?.gameLicensePlateId);
-    if (foundGlpIndex) {
-      this.currentGame?.licensePlates?.slice(foundGlpIndex, 1);
+
+    if (!this.currentGame) {
+      console.error("No current game");
+      return;
     }
-    this.saveGameData();
+
+    if (!this.currentGame.licensePlates) {
+      this.currentGame.licensePlates = [];
+    }
+
+    let foundGlpIndex = this.currentGame.licensePlates.findIndex(x => x.gameLicensePlateId == glp?.gameLicensePlateId);
+    if (foundGlpIndex >= 0) {
+      this.currentGame.licensePlates.splice(foundGlpIndex, 1);
+    } else {
+      console.error("Not found to remove");
+      return;
+    }
+    this.gameService.saveGame(this.currentGame);
     this.availableLicensePlates = this.allLicensePlates.slice(0);
     this.filteredLicensePlates = this.allLicensePlates.slice(0);
     this.updateLicensePlateLists();
-    let usMapIndex = this.usMapService.coordinates.findIndex(x => x.id == glp?.licensePlate?.state?.abbreviation);
-    if (usMapIndex >= 0) {
-      console.log("Changing state color: ", usMapIndex);
-      this.usMapService.coordinates[usMapIndex].c = this.usMapService.defaultStateColor;
-    }
   }
 
   getLicensePlates() {
     let licensePlateClient = new LicensePlatesClient(this.httpClient, environment.API_BASE_URL);
     licensePlateClient.getAll().subscribe({
-      next: (res) => {
+      next: async (res) => {
         console.log("Successfully retrieved license plates");
-        this.allLicensePlates = res.slice(0);
-        this.availableLicensePlates = res.slice(0);
-        this.filteredLicensePlates = res.slice(0);
-        //this.getCurrentGame();
-        this.loadGameData();
+        this.setupLists(res);
       }, error: (err) => {
         console.error("retrieved license plates error: ", err);
         this.coreUtilService.presentToastError();
@@ -340,8 +296,28 @@ export class HomePage implements OnInit {
     });
   }
 
+  async setupLists(licensePlates: LicensePlateModel[]) {
+    this.allLicensePlates = licensePlates.slice(0);
+    this.availableLicensePlates = licensePlates.slice(0);
+    this.filteredLicensePlates = licensePlates.slice(0);
+    this.gameService.loadGameData().then(res => {
+      this.currentGame = this.gameService.getCurrentGame();
+      if (this.currentGame == null) {
+        console.log("Current Game not found after getLicensePlates ", this.currentGame);
+        this.startNewGame("");
+        this.coreUtilService.dismissLoading();
+      } else {
+        this.updateLicensePlateLists();
+        this.coreUtilService.dismissLoading();
+      }
+    });
+  }
+
   updateLicensePlateLists() {
     console.log("Updating lists with count: ", this.currentGame?.licensePlates?.length);
+    
+    this.usMapService.coordinates.forEach(x => x.c = this.usMapService.defaultStateColor);
+    
     this.currentGame?.licensePlates?.forEach(lp => {
       let availableLpIndex = this.availableLicensePlates.findIndex(x => x.licensePlateId == lp.licensePlate?.licensePlateId);
       if (availableLpIndex >= 0) {
@@ -354,61 +330,11 @@ export class HomePage implements OnInit {
 
       let usMapIndex = this.usMapService.coordinates.findIndex(x => x.id == lp?.licensePlate?.state?.abbreviation);
       if (usMapIndex >= 0) {
-        console.log("Changing state color: ", usMapIndex);
         this.usMapService.coordinates[usMapIndex].c = this.usMapService.selectedStateColor;
       }
     });
     this.currentLicensePlates = this.currentGame?.licensePlates ?? [];
   }
 
-  // async saveGame(title: string) {
-  //   let request = new UpdateGameRequest();
-  //   request.title = title;
-  //   request.gameId = new GameId();
-  //   request.gameId.value = this.currentGame?.gameId;
-  //   let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
-  //   gameClient.update(request).subscribe({
-  //     next: (res) => {
-  //       console.log("Successfully updated game");
-  //       this.currentGame = res ?? [];
-  //     }, error: (err) => {
-  //       console.error("updated game error: ", err);
-  //       this.coreUtilService.presentToastError();
-  //     }
-  //   });
-  // }
 
-  async saveGameData() {
-    if (!this.isAuthenticated) {
-      return;
-    }
-    let dataObj = this.currentGame?.clone();
-    dataObj?.licensePlates?.forEach(x => {
-      if (x.licensePlate?.image) {
-        x.licensePlate.image = "";
-      }
-    });
-    GoogleGameServices.saveGame({ title: "CurrentGame", data: JSON.stringify(dataObj) });
-  }
-  async loadGameData() {
-    if (!this.isAuthenticated) {
-      return;
-    }
-    try {
-      let gameData = await GoogleGameServices.loadGame();
-      let parseObj = JSON.parse(gameData.data);
-      this.currentGame = JSON.parse(parseObj?.games?.CurrentGame);
-      console.log("GameData loaded currentGame: ", JSON.stringify(this.currentGame));
-      if (this.currentGame == null) {
-        this.startNewGame("");
-      } else {
-        this.updateLicensePlateLists();
-        this.coreUtilService.dismissLoading();
-      }
-    } catch (err) {
-      console.error("Failed to loadGame from google game services");
-      this.startNewGame("");
-      this.coreUtilService.dismissLoading();
-    }
-  }
 }

@@ -1,8 +1,8 @@
 /**
-Copyright 2022 Scott Lewis, All rights reserved.
+Copyright 2023 Scott Lewis, All rights reserved.
 **/
 /**
- * Copyright 2022 Scott Lewis, All rights reserved.
+ * Copyright 2023 Scott Lewis, All rights reserved.
  */
  class ClientBase {
   /**

@@ -2,7 +2,6 @@
 import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { AccountService } from '../account.service';
 import { CoreUtilService } from '../core-utils';
 import { Account } from '../_models';
 
@@ -13,16 +12,11 @@ export class AuthGuard implements CanActivate, OnInit, OnDestroy {
     private ngUnsubscribe = new Subject();
     public account: Account | null;
 
-    constructor(private router: Router, private accountService: AccountService, private coreUtilService: CoreUtilService) {
+    constructor(private router: Router, private coreUtilService: CoreUtilService) {
         this.ngOnInit();
     }
 
     ngOnInit(): void {
-        this.accountService.account
-            .pipe(takeUntil(this.ngUnsubscribe))
-            .subscribe(res => {
-                this.account = res;
-            });
     }
 
     ngOnDestroy(): void {

@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ModalController, PopoverController } from '@ionic/angular';
@@ -9,6 +9,7 @@ import { ModalSearchLicensePage } from '../modal-search-license/modal-search-lic
 import { ModalViewLicensePage } from '../modal-view-license/modal-view-license.page';
 import { es } from 'date-fns/locale';
 import { ModalEditGamePage } from '../modal-edit-game/modal-edit-game.page';
+import { GameService } from '../game.service';
 
 @Component({
   selector: 'app-history',
@@ -30,13 +31,14 @@ export class HistoryPage implements OnInit {
     addSuffix: true
   };
 
-  constructor(private activatedRoute: ActivatedRoute, private router: Router, private popoverController: PopoverController, private alertController: AlertController, private modalController: ModalController, private httpClient: HttpClient, private coreUtilService: CoreUtilService) { }
+  constructor(private activatedRoute: ActivatedRoute, private router: Router, private popoverController: PopoverController, private alertController: AlertController,
+    private modalController: ModalController, private coreUtilService: CoreUtilService, private gameService: GameService) { }
 
   ngOnInit() {
     this.availableStates = HistoryPage.STATES;
   }
-  ionViewDidEnter(){
-    this.coreUtilService.presentLoading();
+  async ionViewDidEnter() {
+    await this.coreUtilService.presentLoading();
     this.getGames();
   }
   goToHome() {
@@ -71,19 +73,13 @@ export class HistoryPage implements OnInit {
     await alert.present();
     this.popoverController.dismiss();
   }
-  getGames() {
-    let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
-    gameClient.getAll().subscribe({
-      next: (res) => {
-        console.log("Successfully got all games");
-        this.games = res ?? [];
-        this.coreUtilService.dismissLoading();
-      }, error: (err) => {
-        console.error("get all games error: ", err);
-        this.coreUtilService.dismissLoading();
-        this.coreUtilService.presentToastError();
-      }
-    });
+  async getGames() {
+    try {
+      this.games = await this.gameService.getGames();
+    } catch (err) {
+      console.error("Error on getGames: ", err);
+    }
+    this.coreUtilService.dismissLoading();
   }
   async showEditGameModal(game: GameModel) {
     console.log("ShowEditGameModel: ", game);
@@ -102,56 +98,29 @@ export class HistoryPage implements OnInit {
     }
   }
   async saveGame(game: GameModel, title: string) {
-    let request = new UpdateGameRequest();
-    request.title = title;
-    request.gameId = new GameId();
-    request.gameId.value = game.gameId;
-    let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
-    gameClient.update(request).subscribe({
-      next: (res) => {
-        console.log("Successfully updated game");
-        this.game = res ?? [];
-        let gameIndex = this.games.findIndex(x => x.gameId == game.gameId);
-        if (gameIndex >= 0) {
-          this.games[gameIndex].title = title;
-        }
-      }, error: (err) => {
-        console.error("updated game error: ", err);
-        this.coreUtilService.presentToastError();
-      }
-    });
+    let gameIndex = this.games.findIndex(x => x.gameId == game.gameId);
+    if (gameIndex >= 0) {
+      this.games[gameIndex].title = title;
+    }
+    this.gameService.saveGame(this.games[gameIndex]);
+    this.getGames();
   }
   async deleteGame(game: GameModel) {
-    let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
-    gameClient.delete(game.gameId).subscribe({
-      next: (res) => {
-        if (res) {
-          console.log("Successfully deleted game");
-          this.coreUtilService.presentLoading();
-          this.getGames();
-        } else {
-          this.coreUtilService.presentToastError();
-        }
-      }, error: (err) => {
-        console.error("deleted game error: ", err);
-        this.coreUtilService.presentToastError();
-      }
-    });
+    game.deletedDateTime = new Date();
+    this.gameService.saveGame(game);
+    this.getGames();
   }
   async restartGame(game: GameModel) {
-    let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
-    gameClient.restart(game.gameId).subscribe({
-      next: (res) => {
-        if (res) {
-          console.log("Successfully restarted game");
-          this.goToHome();
-        } else {
-          this.coreUtilService.presentToastError();
-        }
-      }, error: (err) => {
-        console.error("restarted game error: ", err);
-        this.coreUtilService.presentToastError();
+    this.games.forEach(async (x) => {
+      if (x.gameId == game.gameId) {
+        x.finishedDateTime = undefined;
+        x.startedDateTime = new Date();
+      } else {
+        x.finishedDateTime = new Date();
       }
+      console.log("restarting game: ", x);
+      await this.gameService.saveGame(x);
     });
+    this.goToHome();
   }
 }

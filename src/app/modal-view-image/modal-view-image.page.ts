@@ -1,13 +1,8 @@
 /**
-Copyright 2022 Scott Lewis, All rights reserved.
+Copyright 2023 Scott Lewis, All rights reserved.
 **/
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { environment } from '../../environments/environment';
-import { HttpClient } from '@angular/common/http';
-import { StorageService } from '../storage.service';
-import { IonSlides, ModalController, PopoverController, ToastController } from '@ionic/angular';
-import { NGXLogger } from 'ngx-logger';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Component, Input, OnInit, ViewChild } from '@angular/core'
+import { IonSlides, ModalController } from '@ionic/angular';
 
 @Component({
   selector: 'app-modal-view-image',
