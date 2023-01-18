@@ -12,7 +12,7 @@ Copyright 2023 Scott Lewis, All rights reserved.
 <ion-content>
   <ion-item>
     <ion-label position="stacked">Email</ion-label>
-    <ion-input type="text" #inputText (ionChange)="inputOnChange($event)" [autofocus]="true" [value]="email"></ion-input>
+    <ion-input type="email" #inputText (ionChange)="inputOnChange($event)" [autofocus]="true" [value]="email"></ion-input>
     <ion-note color="danger" *ngIf="disabled && !email" style="font-size: 14px;">Email is required</ion-note>
   </ion-item>
   <p style="margin-left: 15px;">Enter an email to send your data.</p>

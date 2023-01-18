@@ -41,17 +41,26 @@ export class ModalEditGamePage implements OnInit {
   async getAllGames() {
     this.allGames = await this.gameService.getGames();
     if (this.isNew) {
-      let gameNumber = this.allGames.length + 1;
-      this.title = `Game #${gameNumber}`;
+      let gameNumber = this.allGames.length;
+      let text = `Game #${gameNumber}`;
+      let tries = 0;
+      let foundMatch = false;
+      do {
+        gameNumber++;
+        text = `Game #${gameNumber}`;
+        tries++;
+        foundMatch = (this.allGames.find(x => x.title == text) != null);
+      } while (tries <= 10 && foundMatch);
+      this.title = text;
     }
   }
 
   inputOnChange(e: any) {
-    let text = e.detail.value.toLocaleLowerCase();
+    let text = e.detail.value;
     this.title = e.detail.value;
     console.log("inputOnChange: ", text);
     if (text) {
-      let foundTitle = this.allGames.find(x => x.title?.toLocaleLowerCase() == text);
+      let foundTitle = this.allGames.find(x => x.title == text);
       if (foundTitle) {
         this.disabled = true;
       } else {

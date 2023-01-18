@@ -12,7 +12,7 @@ import { StorageService } from "./storage.service";
 @Injectable({
   providedIn: 'root',
 })
-export class GameService implements OnInit {
+export class GameService {
 
   private allGames: GameModel[] = [];
   private hasLoaded: boolean = false;
@@ -21,7 +21,7 @@ export class GameService implements OnInit {
   constructor(private storageService: StorageService) {
 
   }
-  async ngOnInit() {
+  async init() {
     this.isAuthenticated = (await GoogleGameServices.isAuthenticated()).isAuthenticated;
     console.log("GameService isAuthenticated: ", this.isAuthenticated);
   }
@@ -91,7 +91,7 @@ export class GameService implements OnInit {
 
     this.fixGamesJson();
     this.fixDates();
-    
+
     let gamesJson: any[] = [];
     this.allGames.forEach(x => gamesJson.push(x.toJSON()));
     let dataObj = { title: "games", data: JSON.stringify(gamesJson) };
@@ -100,6 +100,7 @@ export class GameService implements OnInit {
     } else {
       this.storageService.set("games", dataObj);
     }
+    this.hasLoaded = false;
   }
 
   async saveGame(orgGame: GameModel) {
@@ -116,27 +117,40 @@ export class GameService implements OnInit {
     this.allGames.forEach(x => gamesJson.push(x.toJSON()));
     let dataStr = JSON.stringify(this.allGames);
     let dataObj = { title: "games", data: dataStr };
-    console.log("DataObj: ", dataObj);
+    console.log("Saving DataObj: ", dataObj);
     if (this.isAuthenticated) {
-      GoogleGameServices.saveGame(dataObj);
+      GoogleGameServices.saveGame({ title: "games", data: dataStr });
     } else {
       this.storageService.set("games", dataObj);
     }
+    this.hasLoaded = false;
   }
 
   async loadGameData(): Promise<void> {
     return new Promise(async (resolve: any) => {
+      if (this.hasLoaded) {
+        resolve();
+        return;
+      }
       this.allGames = [];
       if (this.isAuthenticated) {
         let gameData = await GoogleGameServices.loadGame();
+        console.log("GameData: ", JSON.stringify(gameData));
         if (gameData) {
           let parseObj = JSON.parse(gameData.data);
-          if (parseObj) {
-            let gamesArr: any[] = JSON.parse(parseObj?.games);
-            gamesArr.forEach(g => {
-              let newGame = new GameModel(g);
-              this.allGames.push(newGame);
-            });
+          console.log("parseObj: ", JSON.stringify(parseObj));
+          if (parseObj?.games) {
+            try {
+              let parseObjArr = JSON.parse(parseObj?.games?.games);
+              console.log("parseObjArr: ", JSON.stringify(parseObjArr));
+              parseObjArr.forEach((g: any) => {
+                console.log("g: ", JSON.stringify(g));
+                let newGame = new GameModel(g);
+                this.allGames.push(newGame);
+              });
+            } catch (err) {
+              console.error("Failed to load games: ", err);
+            }
           }
         }
       } else {
@@ -150,6 +164,7 @@ export class GameService implements OnInit {
         }
       }
       this.hasLoaded = true;
+      this.fixGamesJson();
       this.fixDates();
       console.log("GameData loaded allGames: ", this.allGames);
       resolve();

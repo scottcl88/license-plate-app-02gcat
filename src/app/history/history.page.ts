@@ -74,7 +74,9 @@ export class HistoryPage implements OnInit {
   }
   async getGames() {
     try {
-      this.games = await this.gameService.getGames();
+      let gamesArr = await this.gameService.getGames();
+      console.log("Games returned: ", gamesArr);
+      this.games = gamesArr;
     } catch (err) {
       console.error("Error on getGames: ", err);
     }
@@ -106,7 +108,7 @@ export class HistoryPage implements OnInit {
   }
   async deleteGame(game: GameModel) {
     game.deletedDateTime = new Date();
-    this.gameService.saveGame(game);
+    await this.gameService.saveGame(game);
     this.getGames();
   }
   async restartGame(game: GameModel) {

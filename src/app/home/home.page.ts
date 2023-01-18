@@ -13,6 +13,7 @@ import { UsMapService } from '../us-map/us-map.service';
 import { ModalViewImagePage } from '../modal-view-image/modal-view-image.page';
 import { ModalEditGamePage } from '../modal-edit-game/modal-edit-game.page';
 import { GameService } from '../game.service';
+import { GoogleGameServices } from 'capacitor-google-game-services';
 
 @Component({
   selector: 'app-home',
@@ -23,6 +24,10 @@ export class HomePage implements OnInit {
   public static readonly STATES: string[] = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"];
 
   @ViewChildren('slides') slides: QueryList<IonItemSliding>;
+
+  testLoad(){
+    this.gameService.loadGameData();
+  }
 
   public imageBaseUrl: string = environment.API_BASE_URL + "/api/licensePlates/view/";
 
@@ -110,18 +115,8 @@ export class HomePage implements OnInit {
     }
   }
 
-  async openPreview(img: any) {
-    const modal = await this.modalController.create({
-      component: ModalViewImagePage,
-      cssClass: 'transparent-modal',
-      componentProps: {
-        img
-      }
-    });
-    modal.present();
-  }
-
   async showStartGameModal() {
+    this.popoverController?.dismiss();
     const modal = await this.modalController.create({
       component: ModalEditGamePage,
       componentProps: {
@@ -130,14 +125,15 @@ export class HomePage implements OnInit {
     });
     modal.present();
     const { data } = await modal.onDidDismiss();
-    console.log('Select Modal Dismissed: ', data);
+    console.log('showStartGameModal Modal Dismissed: ', JSON.stringify(data));
     if (data && data.saved && data.title) {
+      this.currentGame = undefined;
       this.startNewGame(data.title);
     }
   }
 
   async showEditGameModal() {
-    this.popoverController.dismiss();
+    this.popoverController?.dismiss();
     const modal = await this.modalController.create({
       component: ModalEditGamePage,
       componentProps: {
@@ -147,12 +143,11 @@ export class HomePage implements OnInit {
     });
     modal.present();
     const { data } = await modal.onDidDismiss();
-    console.log('Select Modal Dismissed: ', data);
+    console.log('showEditGameModal Modal Dismissed: ',  JSON.stringify(data));
     if (data && data.saved && data.title && this.currentGame) {
       this.currentGame.title = data.title;
       this.gameService.saveGame(this.currentGame);
     }
-    modal?.dismiss();
   }
 
   async view(glp: GameLicensePlateModel, i: number) {
@@ -167,17 +162,18 @@ export class HomePage implements OnInit {
     });
     modal.present();
     const { data } = await modal.onDidDismiss();
-    console.log('Select Modal Dismissed: ', data);
+    console.log('view Modal Dismissed: ',  JSON.stringify(data));
     if (data && data.removed) {
       this.removeLicensePlateFromGame(glp);
     }
   }
 
   async startNewGame(title: string) {
-    if (this.currentGame != null) {
+    if (this.currentGame != undefined) {
       this.confirmNewGame();
       return;
     }
+    console.log("Starting new game");
     this.currentGame = new GameModel();
 
     if (title) {
@@ -215,7 +211,6 @@ export class HomePage implements OnInit {
           text: 'OK',
           role: 'confirm',
           handler: () => {
-            this.currentGame = undefined;
             this.showStartGameModal();
           },
         },
@@ -245,9 +240,11 @@ export class HomePage implements OnInit {
     });
 
     let newGlp = new GameLicensePlateModel();
-    newGlp.gameLicensePlateId = largestGlpId;
+    newGlp.createdDateTime = new Date();
+    newGlp.gameLicensePlateId = largestGlpId + 1;
     newGlp.licensePlate = new LicensePlateModel();
     newGlp.licensePlate.init(lp);
+    newGlp.licensePlate.createdDateTime = new Date();
 
     console.log("Adding new glp with id: ", largestGlpId);
     this.currentGame.licensePlates.push(newGlp);
@@ -284,12 +281,15 @@ export class HomePage implements OnInit {
   }
 
   getLicensePlates() {
+    console.time("getLicensePlates");
     let licensePlateClient = new LicensePlatesClient(this.httpClient, environment.API_BASE_URL);
     licensePlateClient.getAll().subscribe({
       next: async (res) => {
+        console.timeEnd("getLicensePlates");
         console.log("Successfully retrieved license plates");
         this.setupLists(res);
       }, error: (err) => {
+        console.timeEnd("getLicensePlates");
         console.error("retrieved license plates error: ", err);
         this.coreUtilService.presentToastError();
       }

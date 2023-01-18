@@ -6,7 +6,7 @@ import { NgxLoggerLevel } from "ngx-logger";
 
 export const environment = {
   production: false,  
-  API_BASE_URL: "https://localhost:7080",
+  API_BASE_URL: "https://licenseplateapi.azurewebsites.net/",
   ServerLogLevel: NgxLoggerLevel.DEBUG
 };
 

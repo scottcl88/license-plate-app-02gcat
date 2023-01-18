@@ -18,6 +18,7 @@ import { DateFnsModule } from 'ngx-date-fns';
 import { environment } from 'src/environments/environment';
 import * as cordovaSQLiteDriver from 'localforage-cordovasqlitedriver';
 import { Drivers, Storage } from '@ionic/storage';
+import { GameService } from './game.service';
 
 @NgModule({
   declarations: [AppComponent],
@@ -42,7 +43,7 @@ import { Drivers, Storage } from '@ionic/storage';
   ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    { provide: APP_INITIALIZER, useFactory: appInitializer, multi: true, deps: [StorageService] },
+    { provide: APP_INITIALIZER, useFactory: appInitializer, multi: true, deps: [StorageService, GameService] },
   ],
   bootstrap: [AppComponent],
 })
