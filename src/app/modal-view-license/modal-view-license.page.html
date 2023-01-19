@@ -13,7 +13,9 @@ Copyright 2023 Scott Lewis, All rights reserved.
   <div id="container" style="text-align: center;">
     <div style="margin-bottom: 30px;">
       <h3>{{glp?.licensePlate?.state?.name}}</h3>
-      <img [src]="imageBaseUrl+glp?.licensePlate?.licensePlateId"  [alt]="glp?.licensePlate?.state?.name" />
+      <ion-img [src]="imageBaseUrl+glp?.licensePlate?.licensePlateId" [alt]="glp?.licensePlate?.state?.name"
+        (ionError)="onImageError()" *ngIf="!imageFailed"
+        style="width: 70%; margin-left: auto; margin-right: auto;"></ion-img>
       <p>Found on {{glp?.createdDateTime | dfnsFormat: 'MMMM d \'at\' h:mm a'}}</p>
     </div>
     <ion-button (click)="dismiss(true)" color="danger">Remove state</ion-button>

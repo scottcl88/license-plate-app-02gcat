@@ -103,13 +103,17 @@ export class HistoryPage implements OnInit {
     if (gameIndex >= 0) {
       this.games[gameIndex].title = title;
     }
-    this.gameService.saveGame(this.games[gameIndex]);
-    this.getGames();
+    this.gameService.saveGame(this.games[gameIndex]).then(res => {
+      console.log("save game finished, reload games");
+      this.getGames();
+    });
   }
   async deleteGame(game: GameModel) {
     game.deletedDateTime = new Date();
-    await this.gameService.saveGame(game);
-    this.getGames();
+    await this.gameService.saveGame(game, false).then(res => {
+      console.log("Delete game finished, reload games");
+      this.getGames();
+    });
   }
   async restartGame(game: GameModel) {
     this.games.forEach(async (x) => {
@@ -118,10 +122,10 @@ export class HistoryPage implements OnInit {
         x.startedDateTime = new Date();
       } else {
         x.finishedDateTime = new Date();
+        console.log("restarting game: ", x);
       }
-      console.log("restarting game: ", x);
-      await this.gameService.saveGame(x);
     });
+    await this.gameService.bulkSaveGames(this.games);
     this.goToHome();
   }
 }

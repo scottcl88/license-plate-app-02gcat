@@ -24,6 +24,10 @@ const routes: Routes = [
     loadChildren: () => import('./privacy-policy/privacy-policy.module').then(m => m.PrivacyPolicyPageModule)
   },
   {
+    path: 'cookie-policy',
+    loadChildren: () => import('./cookie-policy/cookie-policy.module').then(m => m.CookiePolicyPageModule)
+  },
+  {
     path: 'history',
     loadChildren: () => import('./history/history.module').then(m => m.HistoryPageModule)
   },

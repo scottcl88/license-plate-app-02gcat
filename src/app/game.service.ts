@@ -7,6 +7,7 @@ import { Router } from "@angular/router";
 import { GoogleGameServices } from "capacitor-google-game-services";
 import { NGXLogger } from "ngx-logger";
 import { GameLicensePlateModel, GameModel, LicensePlateModel, StateModel } from "src/api";
+import { CoreUtilService } from "./core-utils";
 import { StorageService } from "./storage.service";
 
 @Injectable({
@@ -17,8 +18,9 @@ export class GameService {
   private allGames: GameModel[] = [];
   private hasLoaded: boolean = false;
   private isAuthenticated: boolean = false;
+  private retryAuth: boolean = false;
 
-  constructor(private storageService: StorageService) {
+  constructor(private storageService: StorageService, private coreUtilService: CoreUtilService) {
 
   }
   async init() {
@@ -63,7 +65,7 @@ export class GameService {
       console.error("GameId already exists");
       return;
     }
-    //let gameData = game?.clone();
+
     game?.licensePlates?.forEach(x => {
       if (x.licensePlate?.image) {
         x.licensePlate.image = "";
@@ -89,21 +91,22 @@ export class GameService {
     console.log("Adding game: ", game, game.toJSON());
     this.allGames.push(game);
 
-    this.fixGamesJson();
-    this.fixDates();
-
-    let gamesJson: any[] = [];
-    this.allGames.forEach(x => gamesJson.push(x.toJSON()));
-    let dataObj = { title: "games", data: JSON.stringify(gamesJson) };
-    if (this.isAuthenticated) {
-      GoogleGameServices.saveGame(dataObj);
-    } else {
-      this.storageService.set("games", dataObj);
-    }
-    this.hasLoaded = false;
+    await this.doSave();
   }
 
-  async saveGame(orgGame: GameModel) {
+  async bulkSaveGames(orgGames: GameModel[]) {
+    orgGames.forEach(g => {
+      let newGame = new GameModel(g);
+      let foundGameIndex = this.allGames.findIndex(x => x.gameId == newGame.gameId);
+      if (foundGameIndex >= 0) {
+        this.allGames[foundGameIndex] = newGame;
+      }
+    });
+
+    await this.doSave();
+  }
+
+  async saveGame(orgGame: GameModel, doDismissLoading: boolean = true) {
     let game = new GameModel(orgGame);
     let foundGameIndex = this.allGames.findIndex(x => x.gameId == game.gameId);
     if (foundGameIndex < 0) {
@@ -111,19 +114,58 @@ export class GameService {
       return;
     }
     this.allGames[foundGameIndex] = game;
+
+    await this.doSave(doDismissLoading);
+  }
+
+  private async doSave(doDismissLoading: boolean = true) {
+    await this.coreUtilService.presentLoading("Saving");
+
     this.fixGamesJson();
     this.fixDates();
+
     let gamesJson: any[] = [];
     this.allGames.forEach(x => gamesJson.push(x.toJSON()));
     let dataStr = JSON.stringify(this.allGames);
     let dataObj = { title: "games", data: dataStr };
     console.log("Saving DataObj: ", dataObj);
+
+    if (this.retryAuth) {
+      try {
+        this.isAuthenticated = (await GoogleGameServices.isAuthenticated()).isAuthenticated;
+        this.retryAuth = false;
+      } catch (err) {
+        console.error("Failed to called isAuthenticated", err);
+      }
+    }
+
     if (this.isAuthenticated) {
-      GoogleGameServices.saveGame({ title: "games", data: dataStr });
+      try {
+        let result = await GoogleGameServices.saveGame(dataObj);
+        console.log("SaveGame finished from Google with result: ", result);
+      } catch (err) {
+        console.error("Failed to saveGame to GoogleGameServices. ", err);
+        this.storageService.set("games", dataObj);
+        this.retryAuth = true;
+      }
     } else {
       this.storageService.set("games", dataObj);
     }
     this.hasLoaded = false;
+    if (doDismissLoading) {
+      await this.coreUtilService.dismissLoading();
+    }
+  }
+
+  private async doLoadFromStorage() {
+    let gameData = await this.storageService.get("games");
+    if (gameData) {
+      let gamesArr: any[] = JSON.parse(gameData?.data);
+      gamesArr.forEach(g => {
+        let newGame = new GameModel(g);
+        this.allGames.push(newGame);
+      });
+    }
   }
 
   async loadGameData(): Promise<void> {
@@ -132,36 +174,34 @@ export class GameService {
         resolve();
         return;
       }
+      if (this.retryAuth) {
+        try {
+          this.isAuthenticated = (await GoogleGameServices.isAuthenticated()).isAuthenticated;
+          this.retryAuth = false;
+        } catch (err) {
+          console.error("Failed to called isAuthenticated", err);
+        }
+      }
       this.allGames = [];
       if (this.isAuthenticated) {
-        let gameData = await GoogleGameServices.loadGame();
-        console.log("GameData: ", JSON.stringify(gameData));
-        if (gameData) {
-          let parseObj = JSON.parse(gameData.data);
-          console.log("parseObj: ", JSON.stringify(parseObj));
-          if (parseObj?.games) {
-            try {
+        try {
+          let gameData = await GoogleGameServices.loadGame();
+          if (gameData) {
+            let parseObj = JSON.parse(gameData.data);
+            if (parseObj?.games) {
               let parseObjArr = JSON.parse(parseObj?.games?.games);
-              console.log("parseObjArr: ", JSON.stringify(parseObjArr));
               parseObjArr.forEach((g: any) => {
-                console.log("g: ", JSON.stringify(g));
                 let newGame = new GameModel(g);
                 this.allGames.push(newGame);
               });
-            } catch (err) {
-              console.error("Failed to load games: ", err);
             }
           }
+        } catch (err) {
+          this.retryAuth = true;
+          await this.doLoadFromStorage();
         }
       } else {
-        let gameData = await this.storageService.get("games");
-        if (gameData) {
-          let gamesArr: any[] = JSON.parse(gameData?.data);
-          gamesArr.forEach(g => {
-            let newGame = new GameModel(g);
-            this.allGames.push(newGame);
-          });
-        }
+        await this.doLoadFromStorage();
       }
       this.hasLoaded = true;
       this.fixGamesJson();

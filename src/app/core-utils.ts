@@ -16,11 +16,10 @@ export class CoreUtilService {
     private loadingController: LoadingController, private toastController: ToastController) {
 
   }
-  async presentLoading() {
+  async presentLoading(message: string = "Loading") {
     this.loadingElement = await this.loadingController.create({
-      message: 'Loading',
+      message: message,
       cssClass: '',
-      // spinner: null,
       showBackdrop: true
     });
     await this.loadingElement.present();

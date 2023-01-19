@@ -1,3 +1,6 @@
+/**
+Copyright 2023 Scott Lewis, All rights reserved.
+**/
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
@@ -10,10 +13,8 @@ import { ModalViewLicensePage } from '../modal-view-license/modal-view-license.p
 import { Subject } from 'rxjs';
 import { Account } from '../_models';
 import { UsMapService } from '../us-map/us-map.service';
-import { ModalViewImagePage } from '../modal-view-image/modal-view-image.page';
 import { ModalEditGamePage } from '../modal-edit-game/modal-edit-game.page';
 import { GameService } from '../game.service';
-import { GoogleGameServices } from 'capacitor-google-game-services';
 
 @Component({
   selector: 'app-home',
@@ -25,10 +26,6 @@ export class HomePage implements OnInit {
 
   @ViewChildren('slides') slides: QueryList<IonItemSliding>;
 
-  testLoad(){
-    this.gameService.loadGameData();
-  }
-
   public imageBaseUrl: string = environment.API_BASE_URL + "/api/licensePlates/view/";
 
   public availableStates: string[] = [];
@@ -37,6 +34,8 @@ export class HomePage implements OnInit {
   public availableLicensePlates: LicensePlateModel[] = [];
   public currentLicensePlates: GameLicensePlateModel[] = [];
   public filteredLicensePlates: LicensePlateModel[] = [];
+  
+  public failedImages: number[] = [];
 
   public currentGame: GameModel | undefined = undefined;
 
@@ -72,6 +71,20 @@ export class HomePage implements OnInit {
     this.isAuthenticated = await this.gameService.getIsAuthenticated();
     console.log("User isAuthenticated: ", this.isAuthenticated);
     this.getLicensePlates();
+  }
+
+  isImageError(index: number){
+    let foundImage = this.failedImages.findIndex(x => x == index);
+    return foundImage >= 0;
+  }
+
+  async ionViewDidEnter() {
+    this.failedImages = [];
+  }
+
+  imageLoadError(index: any){
+    console.log("imageLoadError: ", index);
+    this.failedImages.push(index);
   }
 
   goToLogin() {

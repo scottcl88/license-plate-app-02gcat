@@ -18,11 +18,16 @@ export class ModalViewLicensePage implements OnInit {
 
   public glp: GameLicensePlateModel;
   public imageBaseUrl: string = environment.API_BASE_URL + "/api/licensePlates/view/";
+  public imageFailed: boolean = false;
 
   constructor(private logger: NGXLogger, private modalController: ModalController, private popoverController: PopoverController, public toastController: ToastController) {
   }
 
   async ngOnInit() {
+  }
+
+  onImageError(){
+    this.imageFailed = true;
   }
 
   dismiss(removed: boolean) {

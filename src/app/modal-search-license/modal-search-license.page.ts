@@ -1,8 +1,8 @@
 /**
 Copyright 2023 Scott Lewis, All rights reserved.
 **/
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { IonSearchbar, ModalController, PopoverController, ToastController } from '@ionic/angular';
+import { Component, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { IonImg, IonItemSliding, IonSearchbar, ModalController, PopoverController, ToastController } from '@ionic/angular';
 import { NGXLogger } from 'ngx-logger';
 import { LicensePlateModel } from 'src/api';
 import { environment } from 'src/environments/environment';
@@ -16,8 +16,12 @@ export class ModalSearchLicensePage implements OnInit {
 
   @ViewChild(IonSearchbar) searchBar: IonSearchbar;
 
+  @ViewChildren('images') images: QueryList<IonImg>;
+
   public availableLicensePlates: LicensePlateModel[] = [];
   public filteredLicensePlates: LicensePlateModel[] = [];
+
+  public failedImages: number[] = [];
 
   public imageBaseUrl: string = environment.API_BASE_URL + "/api/licensePlates/view/";
 
@@ -27,8 +31,19 @@ export class ModalSearchLicensePage implements OnInit {
   async ngOnInit() {
   }
 
+  isImageError(index: number){
+    let foundImage = this.failedImages.findIndex(x => x == index);
+    return foundImage >= 0;
+  }
+
   async ionViewDidEnter() {
     this.searchBar.setFocus();
+    this.failedImages = [];
+  }
+
+  imageLoadError(index: any){
+    console.log("imageLoadError: ", index);
+    this.failedImages.push(index);
   }
 
   searchOnChange(e: any) {
