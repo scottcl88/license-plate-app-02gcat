@@ -82,6 +82,40 @@ export class HistoryPage implements OnInit {
     }
     this.coreUtilService.dismissLoading();
   }
+  async showStartGameModal() {
+    this.popoverController?.dismiss();
+    const modal = await this.modalController.create({
+      component: ModalEditGamePage,
+      componentProps: {
+        isNew: true
+      },
+    });
+    modal.present();
+    const { data } = await modal.onDidDismiss();
+    console.log('showStartGameModal Modal Dismissed: ', JSON.stringify(data));
+    if (data && data.saved && data.title) {
+      this.startNewGame(data.title);
+    }
+  }
+  async startNewGame(title: string) {
+    console.log("Starting new game");
+    this.currentGame = new GameModel();
+
+    if (title) {
+      this.currentGame.title = title;
+    } else {
+      let allGames = await this.gameService.getGames();
+      this.currentGame.title = `Game #` + (allGames.length + 1);
+    }
+    this.currentGame.licensePlates = [];
+    this.currentGame.startedDateTime = new Date();
+    this.currentGame.gameId = this.gameService.getNewGameId();
+
+    await this.gameService.addGame(this.currentGame);
+
+    this.coreUtilService.dismissLoading();
+    this.goToHome();
+  }
   async showEditGameModal(game: GameModel) {
     console.log("ShowEditGameModel: ", game);
     const modal = await this.modalController.create({

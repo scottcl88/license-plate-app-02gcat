@@ -25,7 +25,7 @@
   </ion-popover>
   <div id="container">
     <div *ngIf="currentGame == null">
-      <ion-button (click)="showStartGameModal()">Start new game?</ion-button>
+      <ion-button (click)="showStartGameModal()">Start new game</ion-button>
     </div>
     <div *ngIf="currentGame != null">
       <div *ngIf="this.currentLicensePlates.length >= this.allLicensePlates.length">
