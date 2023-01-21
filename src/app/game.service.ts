@@ -1,11 +1,8 @@
 /**
 Copyright 2023 Scott Lewis, All rights reserved.
 **/
-import { HttpClient } from "@angular/common/http";
-import { Injectable, OnInit } from "@angular/core";
-import { Router } from "@angular/router";
+import { Injectable } from "@angular/core";
 import { GoogleGameServices } from "capacitor-google-game-services";
-import { NGXLogger } from "ngx-logger";
 import { GameLicensePlateModel, GameModel, LicensePlateModel, StateModel } from "src/api";
 import { CoreUtilService } from "./core-utils";
 import { StorageService } from "./storage.service";
@@ -153,7 +150,7 @@ export class GameService {
     }
     this.hasLoaded = false;
     if (doDismissLoading) {
-      await this.coreUtilService.dismissLoading();
+      this.coreUtilService.dismissLoading();
     }
   }
 
@@ -189,7 +186,7 @@ export class GameService {
           if (gameData) {
             let parseObj = JSON.parse(gameData.data);
             if (parseObj?.games) {
-              let parseObjArr = JSON.parse(parseObj?.games?.games);
+              let parseObjArr = JSON.parse(parseObj?.games);
               parseObjArr.forEach((g: any) => {
                 let newGame = new GameModel(g);
                 this.allGames.push(newGame);
@@ -197,6 +194,7 @@ export class GameService {
             }
           }
         } catch (err) {
+          console.error("Failed to load from google: ", err);
           this.retryAuth = true;
           await this.doLoadFromStorage();
         }

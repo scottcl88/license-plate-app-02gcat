@@ -18,4 +18,4 @@ include ':capacitor-status-bar'
 project(':capacitor-status-bar').projectDir = new File('../node_modules/@capacitor/status-bar/android')
 
 include ':capacitor-google-game-services'
-project(':capacitor-google-game-services').projectDir = new File('../../capacitor-google-game-services/android')
+project(':capacitor-google-game-services').projectDir = new File('../node_modules/capacitor-google-game-services/android')
