@@ -3,7 +3,7 @@ Copyright 2023 Scott Lewis, All rights reserved.
 -->
 <app-header title="View License Plate" titleMarginLeft="0px" [menuButton]="false">
   <ion-buttons slot="end">
-    <ion-button (click)="dismiss(false)">
+    <ion-button (click)="dismiss(false, false)">
       <ion-icon name="close-sharp"></ion-icon>
     </ion-button>
   </ion-buttons>
@@ -15,9 +15,25 @@ Copyright 2023 Scott Lewis, All rights reserved.
       <h3>{{glp?.licensePlate?.state?.name}}</h3>
       <ion-img [src]="imageBaseUrl+glp?.licensePlate?.licensePlateId" [alt]="glp?.licensePlate?.state?.name"
         (ionError)="onImageError()" *ngIf="!imageFailed"
-        style="width: 70%; margin-left: auto; margin-right: auto;"></ion-img>
-      <p>Found on {{glp?.createdDateTime | dfnsFormat: 'MMMM d \'at\' h:mm a'}}</p>
+        style="width: 70%; margin-left: auto; margin-right: auto; margin-bottom: 15px;"></ion-img>
+      <!-- <p>{{glp?.createdDateTime | dfnsFormat: 'MMMM d \'at\' h:mm a'}}</p> -->
+      <ion-item>
+        <ion-label>Found</ion-label>
+        <ion-datetime-button datetime="datetime"></ion-datetime-button>
+      </ion-item>
+      <!-- <ion-item>
+        <ion-label>Location</ion-label>
+        <ion-text>-81.232, 23.233</ion-text>
+        <ion-icon name="pencil" style="margin-left: 20px;"></ion-icon>
+      </ion-item> -->
     </div>
-    <ion-button (click)="dismiss(true)" color="danger">Remove state</ion-button>
+    <ion-button (click)="dismiss(false, true)" *ngIf="isDirty" color="success" style="margin-right: 10px;">Save Changes</ion-button>
+    <ion-button (click)="cancel()" *ngIf="isDirty" color="secondary">Cancel</ion-button>
+    <ion-button (click)="dismiss(true, false)" *ngIf="!isDirty" color="danger">Remove state</ion-button>
   </div>
+  <ion-modal [keepContentsMounted]="true" >
+    <ng-template>
+      <ion-datetime id="datetime" [value]="isoDate" [showDefaultButtons]="true" (ionChange)="dateChanged($event)"></ion-datetime>
+    </ng-template>
+  </ion-modal>
 </ion-content>

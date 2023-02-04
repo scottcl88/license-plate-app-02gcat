@@ -5,8 +5,6 @@ import { AlertController, ModalController, PopoverController } from '@ionic/angu
 import { CreateGameRequest, GameClient, GameId, GameModel, LicenseGameRequest, LicensePlateId, LicensePlateModel, LicensePlatesClient, StateModel, UpdateGameRequest } from 'src/api';
 import { environment } from 'src/environments/environment';
 import { CoreUtilService } from '../core-utils';
-import { ModalSearchLicensePage } from '../modal-search-license/modal-search-license.page';
-import { ModalViewLicensePage } from '../modal-view-license/modal-view-license.page';
 import { es } from 'date-fns/locale';
 import { ModalEditGamePage } from '../modal-edit-game/modal-edit-game.page';
 import { GameService } from '../game.service';

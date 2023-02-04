@@ -34,7 +34,7 @@ export class HomePage implements OnInit {
   public availableLicensePlates: LicensePlateModel[] = [];
   public currentLicensePlates: GameLicensePlateModel[] = [];
   public filteredLicensePlates: LicensePlateModel[] = [];
-  
+
   public failedImages: number[] = [];
 
   public currentGame: GameModel | undefined = undefined;
@@ -73,7 +73,7 @@ export class HomePage implements OnInit {
     this.getLicensePlates();
   }
 
-  isImageError(index: number){
+  isImageError(index: number) {
     let foundImage = this.failedImages.findIndex(x => x == index);
     return foundImage >= 0;
   }
@@ -82,7 +82,7 @@ export class HomePage implements OnInit {
     this.failedImages = [];
   }
 
-  imageLoadError(index: any){
+  imageLoadError(index: any) {
     console.log("imageLoadError: ", index);
     this.failedImages.push(index);
   }
@@ -129,7 +129,11 @@ export class HomePage implements OnInit {
   }
 
   async showStartGameModal() {
-    this.popoverController?.dismiss();
+    try {
+      await this.popoverController?.dismiss();
+    } catch (err) {
+      console.log("Start Game Modal was not dismissed, if any");
+    }
     const modal = await this.modalController.create({
       component: ModalEditGamePage,
       componentProps: {
@@ -156,7 +160,7 @@ export class HomePage implements OnInit {
     });
     modal.present();
     const { data } = await modal.onDidDismiss();
-    console.log('showEditGameModal Modal Dismissed: ',  JSON.stringify(data));
+    console.log('showEditGameModal Modal Dismissed: ', JSON.stringify(data));
     if (data && data.saved && data.title && this.currentGame) {
       this.currentGame.title = data.title;
       this.gameService.saveGame(this.currentGame);
@@ -175,9 +179,15 @@ export class HomePage implements OnInit {
     });
     modal.present();
     const { data } = await modal.onDidDismiss();
-    console.log('view Modal Dismissed: ',  JSON.stringify(data));
-    if (data && data.removed) {
-      this.removeLicensePlateFromGame(glp);
+    console.log('view Modal Dismissed: ', JSON.stringify(data));
+    if (data) {
+      if (data.removed) {
+        this.removeLicensePlateFromGame(glp);
+      }
+      else if (data.saved) {
+        glp.createdDateTime = new Date(data.date);
+        this.updateLicensePlateFromGame(glp);
+      }
     }
   }
 
@@ -268,6 +278,31 @@ export class HomePage implements OnInit {
     this.updateLicensePlateLists();
   }
 
+  updateLicensePlateFromGame(glp: GameLicensePlateModel) {
+    console.log("Updating license plate: ", glp);
+
+    if (!this.currentGame) {
+      console.error("No current game");
+      return;
+    }
+
+    if (!this.currentGame.licensePlates) {
+      this.currentGame.licensePlates = [];
+    }
+
+    let foundGlpIndex = this.currentGame.licensePlates.findIndex(x => x.gameLicensePlateId == glp?.gameLicensePlateId);
+    if (foundGlpIndex >= 0) {
+      this.currentGame.licensePlates[foundGlpIndex] = new GameLicensePlateModel(glp);
+    } else {
+      console.error("Not found to remove");
+      return;
+    }
+    this.gameService.saveGame(this.currentGame);
+
+    this.availableLicensePlates = this.allLicensePlates.slice(0);
+    this.updateLicensePlateLists();
+  }
+
   removeLicensePlateFromGame(glp: GameLicensePlateModel) {
     console.log("Removing license plate: ", glp);
 
@@ -317,7 +352,7 @@ export class HomePage implements OnInit {
       this.currentGame = this.gameService.getCurrentGame();
       if (this.currentGame == null) {
         console.log("Current Game not found after getLicensePlates ", this.currentGame);
-       // this.startNewGame("");
+        // this.startNewGame("");
         this.coreUtilService.dismissLoading();
       } else {
         this.updateLicensePlateLists();
@@ -328,9 +363,9 @@ export class HomePage implements OnInit {
 
   updateLicensePlateLists() {
     console.log("Updating lists with count: ", this.currentGame?.licensePlates?.length);
-    
+
     this.usMapService.coordinates.forEach(x => x.c = this.usMapService.defaultStateColor);
-    
+
     this.currentGame?.licensePlates?.forEach(lp => {
       let availableLpIndex = this.availableLicensePlates.findIndex(x => x.licensePlateId == lp.licensePlate?.licensePlateId);
       if (availableLpIndex >= 0) {

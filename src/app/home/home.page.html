@@ -34,7 +34,7 @@
         <ion-button (click)="confirmNewGame()" style="margin-bottom: 30px;">Start new game</ion-button>
       </div>
       <div *ngIf="this.currentLicensePlates.length < this.allLicensePlates.length">
-        <p style="text-align: center; ">Found {{this.currentLicensePlates.length}} of
+        <p style="text-align: center; font-weight: 800;">Found {{this.currentLicensePlates.length}} of
           {{this.allLicensePlates.length}} States</p>
         <ion-fab>
           <ion-fab-button (click)="search()">

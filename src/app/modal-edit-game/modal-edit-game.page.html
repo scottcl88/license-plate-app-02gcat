@@ -11,12 +11,17 @@ Copyright 2023 Scott Lewis, All rights reserved.
 
 <ion-content>
   <ion-item>
-    <ion-label position="stacked">Game Title</ion-label>
+    <ion-label position="floating">Game Title</ion-label>
     <ion-input type="text" #inputText (ionChange)="inputOnChange($event)" [autofocus]="true" [value]="title"></ion-input>
+    <ion-note slot="helper" *ngIf="!disabled" style="font-size: 14px;">Enter a title to keep track of your games</ion-note>
     <ion-note color="danger" *ngIf="disabled && title" style="font-size: 14px;">That title already exists, please choose another</ion-note>
     <ion-note color="danger" *ngIf="disabled && !title" style="font-size: 14px;">Title is required</ion-note>
   </ion-item>
-  <p style="margin-left: 15px;">Enter a title to keep track of your games</p>
+  <ion-item>
+    <ion-label position="floating">Description</ion-label>
+    <ion-textarea></ion-textarea>
+    <ion-note slot="helper" style="font-size: 14px;">Optionally add a description or notes about this game</ion-note>
+  </ion-item>
   <div style="display: block; margin-top: 15px;">
     <ion-button (click)="dismiss(true)" expand="block" [disabled]="disabled" *ngIf="isNew">Start Game</ion-button>
     <ion-button (click)="dismiss(true)" expand="block" [disabled]="disabled" *ngIf="!isNew">Save</ion-button>
