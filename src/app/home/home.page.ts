@@ -186,6 +186,8 @@ export class HomePage implements OnInit {
       }
       else if (data.saved) {
         glp.createdDateTime = new Date(data.date);
+        glp.location = data.location;
+        glp.vehicleType = data.vehicleType;
         this.updateLicensePlateFromGame(glp);
       }
     }

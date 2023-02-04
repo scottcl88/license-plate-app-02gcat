@@ -3520,6 +3520,8 @@ export class GameLicensePlateModel implements IGameLicensePlateModel {
     deletedDateTime?: Date | undefined;
     gameLicensePlateId?: number;
     licensePlate?: LicensePlateModel;
+    location?: string | undefined;
+    vehicleType?: VehicleType;
 
     constructor(data?: IGameLicensePlateModel) {
         if (data) {
@@ -3537,6 +3539,8 @@ export class GameLicensePlateModel implements IGameLicensePlateModel {
             this.deletedDateTime = _data["deletedDateTime"] ? new Date(_data["deletedDateTime"].toString()) : <any>undefined;
             this.gameLicensePlateId = _data["gameLicensePlateId"];
             this.licensePlate = _data["licensePlate"] ? LicensePlateModel.fromJS(_data["licensePlate"]) : <any>undefined;
+            this.location = _data["location"];
+            this.vehicleType = _data["vehicleType"];
         }
     }
 
@@ -3554,6 +3558,8 @@ export class GameLicensePlateModel implements IGameLicensePlateModel {
         data["deletedDateTime"] = this.deletedDateTime ? this.deletedDateTime.toISOString() : <any>undefined;
         data["gameLicensePlateId"] = this.gameLicensePlateId;
         data["licensePlate"] = this.licensePlate ? this.licensePlate.toJSON() : <any>undefined;
+        data["location"] = this.location;
+        data["vehicleType"] = this.vehicleType;
         return data;
     }
 
@@ -3571,6 +3577,8 @@ export interface IGameLicensePlateModel {
     deletedDateTime?: Date | undefined;
     gameLicensePlateId?: number;
     licensePlate?: LicensePlateModel;
+    location?: string | undefined;
+    vehicleType?: VehicleType;
 }
 
 export class GameModel implements IGameModel {
@@ -4845,6 +4853,13 @@ export class ValidateResetTokenRequest implements IValidateResetTokenRequest {
 
 export interface IValidateResetTokenRequest {
     token: string;
+}
+
+export enum VehicleType {
+    Unknown = "Unknown",
+    Car = "Car",
+    Truck = "Truck",
+    Other = "Other",
 }
 
 export class VerifyEmailRequest implements IVerifyEmailRequest {

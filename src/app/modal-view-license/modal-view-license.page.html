@@ -21,6 +21,10 @@ Copyright 2023 Scott Lewis, All rights reserved.
         <ion-label>Found</ion-label>
         <ion-datetime-button datetime="datetime"></ion-datetime-button>
       </ion-item>
+      <ion-item>
+        <ion-label>Vehicle Type</ion-label>
+        <ion-button (click)="openVehiclePicker()" color="medium">{{vehicleType}}</ion-button>
+      </ion-item>
       <!-- <ion-item>
         <ion-label>Location</ion-label>
         <ion-text>-81.232, 23.233</ion-text>

@@ -2,10 +2,10 @@
 Copyright 2023 Scott Lewis, All rights reserved.
 **/
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { IonDatetime, IonSearchbar, ModalController, PopoverController, ToastController } from '@ionic/angular';
+import { IonDatetime, IonSearchbar, ModalController, PickerController, PopoverController, ToastController } from '@ionic/angular';
 import { formatISO } from 'date-fns';
 import { NGXLogger } from 'ngx-logger';
-import { GameLicensePlateModel, LicensePlateModel } from 'src/api';
+import { GameLicensePlateModel, LicensePlateModel, VehicleType } from 'src/api';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -22,13 +22,16 @@ export class ModalViewLicensePage implements OnInit {
   public imageFailed: boolean = false;
   public isoDate: string;
   public location: string;
+  public vehicleType: VehicleType;
   public isDirty: boolean = false;
 
-  constructor(private logger: NGXLogger, private modalController: ModalController, private popoverController: PopoverController, public toastController: ToastController) {
+  constructor(private logger: NGXLogger, private modalController: ModalController, private pickerController: PickerController, public toastController: ToastController) {
   }
 
   async ngOnInit() {
-    this.isoDate = formatISO(this?.glp?.createdDateTime);
+    this.isoDate = formatISO(this.glp.createdDateTime);
+    this.location = this.glp.location ?? "";
+    this.vehicleType = this.glp.vehicleType ?? VehicleType.Car;
   }
 
   onImageError() {
@@ -43,9 +46,56 @@ export class ModalViewLicensePage implements OnInit {
     }
   }
 
+  async openVehiclePicker() {
+    const picker = await this.pickerController.create({
+      columns: [
+        {
+          name: 'types',
+          options: [
+            {
+              text: 'Car',
+              value: VehicleType.Car,
+            },
+            {
+              text: 'Truck',
+              value: VehicleType.Truck,
+            },
+            {
+              text: 'Other',
+              value: VehicleType.Other,
+            },
+          ],
+        },
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+        {
+          text: 'Confirm',
+          handler: (selected) => {
+            console.log("Value:: ", selected);
+            let newType = selected.types.value;
+            if (this.glp.vehicleType != newType) {
+              this.isDirty = true;
+            } else {
+              this.isDirty = false;
+            }
+            this.vehicleType = newType;
+          },
+        },
+      ],
+    });
+
+    await picker.present();
+  }
+
   cancel() {
     console.log("cancel changes");
-    this.isoDate = formatISO(this?.glp?.createdDateTime);
+    this.isoDate = formatISO(this.glp.createdDateTime);
+    this.location = this.glp.location ?? "";
+    this.vehicleType = this.glp.vehicleType ?? VehicleType.Car;
     this.isDirty = false;
     this.datetime.value = this.isoDate;
   }
@@ -55,7 +105,8 @@ export class ModalViewLicensePage implements OnInit {
       removed: removed,
       saved: saved,
       date: this.isoDate,
-      location: this.location
+      location: this.location,
+      vehicleType: this.vehicleType
     });
   }
 }
