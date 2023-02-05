@@ -3089,6 +3089,73 @@ export interface IAuthenticateResponse {
     refreshToken?: string | undefined;
 }
 
+export class CoordinatesPositionModel implements ICoordinatesPositionModel {
+    latitude?: number;
+    longitude?: number;
+    accuracy?: number;
+    altitudeAccuracy?: number | undefined;
+    altitude?: number | undefined;
+    speed?: number | undefined;
+    heading?: number | undefined;
+
+    constructor(data?: ICoordinatesPositionModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.latitude = _data["latitude"];
+            this.longitude = _data["longitude"];
+            this.accuracy = _data["accuracy"];
+            this.altitudeAccuracy = _data["altitudeAccuracy"];
+            this.altitude = _data["altitude"];
+            this.speed = _data["speed"];
+            this.heading = _data["heading"];
+        }
+    }
+
+    static fromJS(data: any): CoordinatesPositionModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new CoordinatesPositionModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["latitude"] = this.latitude;
+        data["longitude"] = this.longitude;
+        data["accuracy"] = this.accuracy;
+        data["altitudeAccuracy"] = this.altitudeAccuracy;
+        data["altitude"] = this.altitude;
+        data["speed"] = this.speed;
+        data["heading"] = this.heading;
+        return data;
+    }
+
+    clone(): CoordinatesPositionModel {
+        const json = this.toJSON();
+        let result = new CoordinatesPositionModel();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ICoordinatesPositionModel {
+    latitude?: number;
+    longitude?: number;
+    accuracy?: number;
+    altitudeAccuracy?: number | undefined;
+    altitude?: number | undefined;
+    speed?: number | undefined;
+    heading?: number | undefined;
+}
+
 export class CreateGameRequest implements ICreateGameRequest {
     title?: string | undefined;
     description?: string | undefined;
@@ -3520,9 +3587,9 @@ export class GameLicensePlateModel implements IGameLicensePlateModel {
     deletedDateTime?: Date | undefined;
     gameLicensePlateId?: number;
     licensePlate?: LicensePlateModel;
-    location?: string | undefined;
     notes?: string | undefined;
     vehicleTypes?: VehicleType[] | undefined;
+    location?: CoordinatesPositionModel;
 
     constructor(data?: IGameLicensePlateModel) {
         if (data) {
@@ -3540,13 +3607,13 @@ export class GameLicensePlateModel implements IGameLicensePlateModel {
             this.deletedDateTime = _data["deletedDateTime"] ? new Date(_data["deletedDateTime"].toString()) : <any>undefined;
             this.gameLicensePlateId = _data["gameLicensePlateId"];
             this.licensePlate = _data["licensePlate"] ? LicensePlateModel.fromJS(_data["licensePlate"]) : <any>undefined;
-            this.location = _data["location"];
             this.notes = _data["notes"];
             if (Array.isArray(_data["vehicleTypes"])) {
                 this.vehicleTypes = [] as any;
                 for (let item of _data["vehicleTypes"])
                     this.vehicleTypes!.push(item);
             }
+            this.location = _data["location"] ? CoordinatesPositionModel.fromJS(_data["location"]) : <any>undefined;
         }
     }
 
@@ -3564,13 +3631,13 @@ export class GameLicensePlateModel implements IGameLicensePlateModel {
         data["deletedDateTime"] = this.deletedDateTime ? this.deletedDateTime.toISOString() : <any>undefined;
         data["gameLicensePlateId"] = this.gameLicensePlateId;
         data["licensePlate"] = this.licensePlate ? this.licensePlate.toJSON() : <any>undefined;
-        data["location"] = this.location;
         data["notes"] = this.notes;
         if (Array.isArray(this.vehicleTypes)) {
             data["vehicleTypes"] = [];
             for (let item of this.vehicleTypes)
                 data["vehicleTypes"].push(item);
         }
+        data["location"] = this.location ? this.location.toJSON() : <any>undefined;
         return data;
     }
 
@@ -3588,9 +3655,9 @@ export interface IGameLicensePlateModel {
     deletedDateTime?: Date | undefined;
     gameLicensePlateId?: number;
     licensePlate?: LicensePlateModel;
-    location?: string | undefined;
     notes?: string | undefined;
     vehicleTypes?: VehicleType[] | undefined;
+    location?: CoordinatesPositionModel;
 }
 
 export class GameModel implements IGameModel {

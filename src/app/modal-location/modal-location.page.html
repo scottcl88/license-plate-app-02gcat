@@ -1,0 +1,41 @@
+<!--
+Copyright 2023 Scott Lewis, All rights reserved.
+-->
+<app-header title="Record Location?" titleMarginLeft="0px" [menuButton]="false">
+  <ion-buttons slot="end">
+    <ion-button (click)="dismiss(false)">
+      <ion-icon name="close-sharp"></ion-icon>
+    </ion-button>
+  </ion-buttons>
+</app-header>
+
+<ion-content>
+  <ion-list>
+    <ion-radio-group [value]="locationValue" (ionChange)="radioChanged($event)">
+      <ion-item>
+        <ion-label>Always Allow</ion-label>
+        <ion-radio slot="end" value="alwaysAllow"></ion-radio>
+      </ion-item>
+      <div *ngIf="!displayAsk">
+        <ion-item>
+          <ion-label>Allow this time</ion-label>
+          <ion-radio slot="end" value="allowNow"></ion-radio>
+        </ion-item>
+        <ion-item>
+          <ion-label>Deny this time</ion-label>
+          <ion-radio slot="end" value="denyNow"></ion-radio>
+        </ion-item>
+      </div>
+      <div *ngIf="displayAsk">
+        <ion-item>
+          <ion-label>Ask</ion-label>
+          <ion-radio slot="end" value="denyNow"></ion-radio>
+        </ion-item>
+      </div>
+      <ion-item>
+        <ion-label>Never Allow</ion-label>
+        <ion-radio slot="end" value="neverAllow"></ion-radio>
+      </ion-item>
+    </ion-radio-group>
+  </ion-list>
+</ion-content>

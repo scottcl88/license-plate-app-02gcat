@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, EventEmitter, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, IonItemSliding, ModalController, PopoverController } from '@ionic/angular';
-import { GameLicensePlateModel, GameModel, LicensePlateModel, LicensePlatesClient, VehicleType } from 'src/api';
+import { CoordinatesPositionModel, GameLicensePlateModel, GameModel, LicensePlateModel, LicensePlatesClient, VehicleType } from 'src/api';
 import { environment } from 'src/environments/environment';
 import { CoreUtilService } from '../core-utils';
 import { ModalSearchLicensePage } from '../modal-search-license/modal-search-license.page';
@@ -20,6 +20,10 @@ import { UsMapComponent } from '../us-map/us-map.component';
 import Swiper, { SwiperOptions, Zoom } from 'swiper';
 import { ZoomOptions } from 'swiper/types';
 import { EventsParams, SwiperComponent } from 'swiper/angular';
+import { Geolocation } from '@capacitor/geolocation';
+import { Position } from '@capacitor/geolocation/dist/esm/definitions';
+import { ModalLocationPage } from '../modal-location/modal-location.page';
+import { Preferences } from '@capacitor/preferences';
 
 @Component({
   selector: 'app-home',
@@ -300,7 +304,45 @@ export class HomePage implements OnInit {
     const { data } = await modal.onDidDismiss();
     console.log('Select Modal Dismissed: ', data);
     if (data && data.saved && data.selectedState) {
-      this.addLicensePlateToGame(data.selectedState);
+      let recordLocationOption = await Preferences.get({ key: "RecordLocationOption" });
+      console.log("recordLocationOption: ", recordLocationOption);
+      if (recordLocationOption && recordLocationOption.value) {
+        if (recordLocationOption.value == "alwaysAllow") {
+          const coordinates = await Geolocation.getCurrentPosition();
+          let model = new CoordinatesPositionModel();
+          model.init(coordinates.coords);
+          this.addLicensePlateToGame(data.selectedState, model);
+        } else if (recordLocationOption.value == "neverAllow") {
+          this.addLicensePlateToGame(data.selectedState, undefined);
+        } else {
+          this.recordLocation(data.selectedState);
+        }
+      } else {
+        this.recordLocation(data.selectedState);
+      }
+    }
+  }
+
+  async recordLocation(selectedState: any) {
+    const modal = await this.modalController.create({
+      component: ModalLocationPage,
+      showBackdrop: true,
+      componentProps: {
+      },
+    });
+    modal.present();
+    const { data } = await modal.onDidDismiss();
+    console.log('Select Modal Dismissed: ', data);
+    if (data && data.saved) {
+      await Preferences.set({ key: "RecordLocationOption", value: data.value });
+      if (data.value == "alwaysAllow" || data.value == "allowNow") {
+        const coordinates = await Geolocation.getCurrentPosition();
+        let model = new CoordinatesPositionModel();
+        model.init(coordinates.coords);
+        this.addLicensePlateToGame(selectedState, model);
+      }
+    } else {
+      this.addLicensePlateToGame(selectedState, undefined);
     }
   }
 
@@ -422,7 +464,7 @@ export class HomePage implements OnInit {
     await alert.present();
   }
 
-  addLicensePlateToGame(lp: LicensePlateModel) {
+  addLicensePlateToGame(lp: LicensePlateModel, coordinates: CoordinatesPositionModel | undefined) {
     console.log("Adding license plate: ", lp);
 
     if (!this.currentGame) {
@@ -448,6 +490,9 @@ export class HomePage implements OnInit {
     newGlp.licensePlate.init(lp);
     newGlp.licensePlate.createdDateTime = new Date();
     newGlp.vehicleTypes = [VehicleType.Car];
+    if (coordinates != undefined) {
+      newGlp.location = new CoordinatesPositionModel(coordinates);
+    }
 
     console.log("Adding new glp with id: ", largestGlpId);
     this.currentGame.licensePlates.push(newGlp);

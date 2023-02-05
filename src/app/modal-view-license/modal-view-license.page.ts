@@ -2,10 +2,11 @@
 Copyright 2023 Scott Lewis, All rights reserved.
 **/
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { IonDatetime, IonSearchbar, ModalController, PickerController, PopoverController, ToastController } from '@ionic/angular';
+import { Position } from '@capacitor/geolocation/dist/esm/definitions';
+import { AlertController, IonDatetime, IonSearchbar, ModalController, PickerController, PopoverController, ToastController } from '@ionic/angular';
 import { formatISO } from 'date-fns';
 import { NGXLogger } from 'ngx-logger';
-import { GameLicensePlateModel, LicensePlateModel, VehicleType } from 'src/api';
+import { CoordinatesPositionModel, GameLicensePlateModel, LicensePlateModel, VehicleType } from 'src/api';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -21,7 +22,7 @@ export class ModalViewLicensePage implements OnInit {
   public imageBaseUrl: string = environment.API_BASE_URL + "/api/licensePlates/view/";
   public imageFailed: boolean = false;
   public isoDate: string;
-  public location: string;
+  public location: CoordinatesPositionModel | undefined;
   public notes: string;
   public vehicleTypes: VehicleType[];
   public isDirty: boolean = false;
@@ -36,12 +37,12 @@ export class ModalViewLicensePage implements OnInit {
   public isTruckDisabled: boolean = false;
   public isOtherDisabled: boolean = false;
 
-  constructor(private logger: NGXLogger, private modalController: ModalController, private pickerController: PickerController, public toastController: ToastController) {
+  constructor(private logger: NGXLogger, private modalController: ModalController, private alertController: AlertController, public toastController: ToastController) {
   }
 
   async ngOnInit() {
     this.isoDate = formatISO(this.glp.createdDateTime);
-    this.location = this.glp.location ?? "";
+    this.location = this.glp.location ?? undefined;
     this.notes = this.glp.notes ?? "";
     this.vehicleTypes = this.glp.vehicleTypes ?? [VehicleType.Car];
     this.updateChecked();
@@ -129,11 +130,36 @@ export class ModalViewLicensePage implements OnInit {
       this.isCarDisabled = false;
     }
   }
+  async deleteLocation() {
+    const alert = await this.alertController.create({
+      header: 'Delete this location data?',
+      subHeader: 'This cannot be undone.',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          handler: () => {
+            
+          },
+        },
+        {
+          text: 'OK',
+          role: 'confirm',
+          handler: () => {
+            this.location = undefined;
+            this.isDirty = true;
+          },
+        },
+      ],
+    });
+
+    await alert.present();
+  }
 
   cancel() {
     console.log("cancel changes");
     this.isoDate = formatISO(this.glp.createdDateTime);
-    this.location = this.glp.location ?? "";
+    this.location = this.glp.location ?? undefined;
     this.notes = this.glp.notes ?? "";
     this.vehicleTypes = this.glp.vehicleTypes ?? [VehicleType.Car];
     this.isCarChecked = true;

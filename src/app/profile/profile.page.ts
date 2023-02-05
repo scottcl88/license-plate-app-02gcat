@@ -10,11 +10,13 @@ import { AlertController, ModalController, PopoverController } from '@ionic/angu
 import { CoreUtilService } from '../core-utils';
 import { Subject } from 'rxjs';
 import { GoogleGameServices } from 'capacitor-google-game-services';
-import { EmailGameDataRequest, GameClient } from 'src/api';
+import { CoordinatesPositionModel, EmailGameDataRequest, GameClient } from 'src/api';
 import { environment } from 'src/environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { ModalEmailPage } from '../modal-email/modal-email.page';
 import { GameService } from '../game.service';
+import { Preferences } from '@capacitor/preferences';
+import { ModalLocationPage } from '../modal-location/modal-location.page';
 
 @Component({
   selector: 'app-profile',
@@ -30,6 +32,9 @@ export class ProfilePage implements OnInit, OnDestroy {
   public isLoading: boolean = false;
 
   private ngUnsubscribe = new Subject();
+
+  public recordLocationOption: string;
+  public recordLocationOptionText: string;
 
   constructor(
     private coreUtilService: CoreUtilService,
@@ -56,6 +61,55 @@ export class ProfilePage implements OnInit, OnDestroy {
     } else {
       this.coreUtilService.dismissLoading();
       this.isLoading = false;
+    }
+    this.recordLocationOption = await (await Preferences.get({ key: "RecordLocationOption" })).value ?? "";
+    switch (this.recordLocationOption) {
+      case "alwaysAllow": {
+        this.recordLocationOptionText = "Always Allow";
+        break;
+      } case "allowNow": {
+        this.recordLocationOptionText = "Ask";
+        break;
+      } case "denyNow": {
+        this.recordLocationOptionText = "Ask";
+        break;
+      } case "neverAllow": {
+        this.recordLocationOptionText = "Never Allow";
+        break;
+      }
+    }
+  }
+
+  async recordLocation() {
+    const modal = await this.modalController.create({
+      component: ModalLocationPage,
+      showBackdrop: true,
+      componentProps: {
+        displayAsk: true,
+        locationValue: this.recordLocationOption
+      },
+    });
+    modal.present();
+    const { data } = await modal.onDidDismiss();
+    console.log('Select Modal Dismissed: ', data);
+    if (data && data.saved) {
+      await Preferences.set({ key: "RecordLocationOption", value: data.value });
+      this.recordLocationOption = data.value;
+      switch (this.recordLocationOption) {
+        case "alwaysAllow": {
+          this.recordLocationOptionText = "Always Allow";
+          break;
+        } case "allowNow": {
+          this.recordLocationOptionText = "Ask";
+          break;
+        } case "denyNow": {
+          this.recordLocationOptionText = "Ask";
+          break;
+        } case "neverAllow": {
+          this.recordLocationOptionText = "Never Allow";
+          break;
+        }
+      }
     }
   }
 

@@ -34,7 +34,14 @@ Copyright 2023 Scott Lewis, All rights reserved.
       </ion-label>
       <ion-icon name="save-outline" style="font-size: 24px;height: 48px;"></ion-icon>
     </ion-item>
-  </div>
+  </div>  
+  <ion-item-divider lines="full"></ion-item-divider>
+  <ion-item button (click)="recordLocation()" lines="full" >
+    <ion-label>
+      Record Location
+    </ion-label>
+    <ion-text>{{recordLocationOptionText}}</ion-text>
+  </ion-item>
   <ion-item-divider lines="full"></ion-item-divider>
   <ion-item button (click)="showEmailModal()" lines="full" >
     <ion-label color="secondary">

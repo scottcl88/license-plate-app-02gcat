@@ -14,6 +14,7 @@ import { UsMapModule } from '../us-map/us-map.module';
 import { ModalViewImageModule } from '../modal-view-image/modal-view-image.module';
 import { SwiperModule } from 'swiper/angular';
 import { ModalEditGamePageModule } from '../modal-edit-game/modal-edit-game.module';
+import { ModalLocationPageModule } from '../modal-location/modal-location.module';
 
 
 @NgModule({
@@ -29,7 +30,8 @@ import { ModalEditGamePageModule } from '../modal-edit-game/modal-edit-game.modu
     ModalViewImageModule,
     SwiperModule,
     ModalEditGamePageModule,
-    SwiperModule
+    SwiperModule,
+    ModalLocationPageModule
   ],
   declarations: [HomePage]
 })

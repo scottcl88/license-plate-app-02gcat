@@ -3,7 +3,7 @@ Copyright 2023 Scott Lewis, All rights reserved.
 **/
 import { Injectable } from "@angular/core";
 import { GoogleGameServices } from "capacitor-google-game-services";
-import { GameLicensePlateModel, GameModel, LicensePlateModel, StateModel } from "src/api";
+import { CoordinatesPositionModel, GameLicensePlateModel, GameModel, LicensePlateModel, StateModel } from "src/api";
 import { CoreUtilService } from "./core-utils";
 import { StorageService } from "./storage.service";
 
@@ -220,6 +220,9 @@ export class GameService {
           if (glp.licensePlate.state) {
             newGlp.licensePlate.state = new StateModel(glp.licensePlate.state);
           }
+        }
+        if(glp.location){
+          newGlp.location = new CoordinatesPositionModel(glp.location);
         }
         lpArr.push(newGlp);
       });
