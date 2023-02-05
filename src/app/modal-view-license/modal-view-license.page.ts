@@ -22,8 +22,18 @@ export class ModalViewLicensePage implements OnInit {
   public imageFailed: boolean = false;
   public isoDate: string;
   public location: string;
-  public vehicleType: VehicleType;
+  public vehicleTypes: VehicleType[];
   public isDirty: boolean = false;
+
+  public isLoaded: boolean = false;
+
+  public isCarChecked: boolean = true;
+  public isTruckChecked: boolean = false;
+  public isOtherChecked: boolean = false;
+
+  public isCarDisabled: boolean = true;
+  public isTruckDisabled: boolean = false;
+  public isOtherDisabled: boolean = false;
 
   constructor(private logger: NGXLogger, private modalController: ModalController, private pickerController: PickerController, public toastController: ToastController) {
   }
@@ -31,7 +41,15 @@ export class ModalViewLicensePage implements OnInit {
   async ngOnInit() {
     this.isoDate = formatISO(this.glp.createdDateTime);
     this.location = this.glp.location ?? "";
-    this.vehicleType = this.glp.vehicleType ?? VehicleType.Car;
+    this.vehicleTypes = this.glp.vehicleTypes ?? [VehicleType.Car];
+    // this.isCarChecked = true;
+    // this.isTruckChecked = false;
+    // this.isOtherChecked = false;
+    this.updateChecked();
+  }
+
+  async ngAfterViewInit() {
+    this.isLoaded = true;
   }
 
   onImageError() {
@@ -46,56 +64,76 @@ export class ModalViewLicensePage implements OnInit {
     }
   }
 
-  async openVehiclePicker() {
-    const picker = await this.pickerController.create({
-      columns: [
-        {
-          name: 'types',
-          options: [
-            {
-              text: 'Car',
-              value: VehicleType.Car,
-            },
-            {
-              text: 'Truck',
-              value: VehicleType.Truck,
-            },
-            {
-              text: 'Other',
-              value: VehicleType.Other,
-            },
-          ],
-        },
-      ],
-      buttons: [
-        {
-          text: 'Cancel',
-          role: 'cancel',
-        },
-        {
-          text: 'Confirm',
-          handler: (selected) => {
-            console.log("Value:: ", selected);
-            let newType = selected.types.value;
-            if (this.glp.vehicleType != newType) {
-              this.isDirty = true;
-            } else {
-              this.isDirty = false;
-            }
-            this.vehicleType = newType;
-          },
-        },
-      ],
-    });
+  checkedChange(type: string) {
+    if (!this.isLoaded) return;
+    console.log("Current Types: ", this.vehicleTypes);
+    let found = this.vehicleTypes.find(x => x == type);
+    if (found) {
+      let index = this.vehicleTypes.indexOf(found);
+      this.vehicleTypes.splice(index, 1);
+    } else {
+      let vt = type as VehicleType;
+      this.vehicleTypes.push(vt);
+    }
+    this.isDirty = true;
 
-    await picker.present();
+    console.log("New Types: ", this.vehicleTypes);
+    this.updateChecked();
+  }
+
+  updateChecked() {
+    let foundCar = this.vehicleTypes.find(x => x == "Car");
+    if (foundCar) {
+      this.isCarChecked = true;
+    } else {
+      this.isCarChecked = false;
+    }
+    let foundTruck = this.vehicleTypes.find(x => x == "Truck");
+    if (foundTruck) {
+      this.isTruckChecked = true;
+    } else {
+      this.isTruckChecked = false;
+    }
+    let foundOther = this.vehicleTypes.find(x => x == "Other");
+    if (foundOther) {
+      this.isOtherChecked = true;
+    } else {
+      this.isOtherChecked = false;
+    }
+
+    if (this.vehicleTypes.length == 1) {
+      if (this.vehicleTypes[0] == VehicleType.Car) {
+        this.isCarChecked = true;
+        this.isCarDisabled = true;
+        this.isTruckDisabled = false;
+        this.isOtherDisabled = false;
+      } else if (this.vehicleTypes[0] == VehicleType.Truck) {
+        this.isTruckChecked = true;
+        this.isTruckDisabled = true;
+        this.isOtherDisabled = false;
+        this.isCarDisabled = false;
+      } else if (this.vehicleTypes[0] == VehicleType.Other) {
+        this.isOtherChecked = true;
+        this.isOtherDisabled = true;
+        this.isTruckDisabled = false;
+        this.isCarDisabled = false;
+      }
+    } else {
+      this.isOtherDisabled = false;
+      this.isTruckDisabled = false;
+      this.isCarDisabled = false;
+    }
   }
 
   cancel() {
     console.log("cancel changes");
     this.isoDate = formatISO(this.glp.createdDateTime);
     this.location = this.glp.location ?? "";
-    this.vehicleType = this.glp.vehicleType ?? VehicleType.Car;
+    this.vehicleTypes = this.glp.vehicleTypes ?? [VehicleType.Car];
+    this.isCarChecked = true;
+    this.isTruckChecked = false;
+    this.isOtherChecked = false;
+    this.updateChecked();
     this.isDirty = false;
     this.datetime.value = this.isoDate;
   }
@@ -106,7 +144,7 @@ export class ModalViewLicensePage implements OnInit {
       saved: saved,
       date: this.isoDate,
       location: this.location,
-      vehicleType: this.vehicleType
+      vehicleTypes: this.vehicleTypes
     });
   }
 }

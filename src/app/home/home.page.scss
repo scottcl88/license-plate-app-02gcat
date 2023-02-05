@@ -24,28 +24,80 @@ ion-menu-button {
   text-decoration: none;
 }
 
-.map-container{
+.map-container {
   overflow-y: hidden;
 }
 
 .image-slides {
- // margin-top: 50%;
- // margin-left: 25px;
+  // margin-top: 50%;
+  // margin-left: 25px;
 }
 .preview-slides {
   margin-top: 20%;
   background: #e6e6e6;
 
   img {
-      padding-top: 20px;
-      padding-bottom: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
   }
 }
 
-ion-fab{
+ion-fab {
   position: absolute;
   margin-left: 75%;
   margin-right: auto;
   margin-top: 35%;
   display: block;
+}
+
+ul.plate-color-marker{
+  list-style-type: none;
+  padding-left: 0;
+  display: flex;
+  li {
+    display: flex;
+    margin-bottom: 10px;
+    margin-right: 15px;
+    div {
+      width: 15px;
+      height: 15px;
+      margin-right: 5px;
+    }
+  }
+}
+
+ul.legend-marker {
+  list-style-type: none;
+  padding-left: 0;
+  li {
+    display: flex;
+    margin-bottom: 10px;
+    div {
+      width: 15px;
+      height: 15px;
+      margin-right: 15px;
+    }
+  }
+}
+
+.car {
+  background-color: #00c33e;
+}
+.truck {
+  background-color: #0037c3;
+}
+.other {
+  background-color: #7d00c3;
+}
+.truck-car {
+  background-color: #00d5f1;
+}
+.truck-other {
+  background-color: #f333ff;
+}
+.car-other {
+  background-color: #dc0000;
+}
+.truck-car-other {
+  background-color: #FF9900;
 }

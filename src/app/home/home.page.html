@@ -34,7 +34,8 @@
         <ion-button (click)="confirmNewGame()" style="margin-bottom: 30px;">Start new game</ion-button>
       </div>
       <div *ngIf="this.currentLicensePlates.length < this.allLicensePlates.length" class="map-container">
-        <ion-text style="text-align: center; font-weight: bold; margin-top: 5px; display: block;">Found {{this.currentLicensePlates.length}} of
+        <ion-text style="text-align: center; font-weight: bold; margin-top: 5px; display: block;">Found
+          {{this.currentLicensePlates.length}} of
           {{this.allLicensePlates.length}} States</ion-text>
         <div [style.opacity]="addStateOpacity">
           <ion-fab>
@@ -43,28 +44,21 @@
             </ion-fab-button>
           </ion-fab>
         </div>
-        <!-- <ion-slides [options]="sliderOpts" class="preview-slides">
-          <ion-slide>
-            <ion-icon name="search" (click)="openPreview()"></ion-icon>
-          </ion-slide>
-        </ion-slides> -->
         <div *ngIf="showDefaultMap">
           <us-map #usMapContainer></us-map>
         </div>
-        <swiper #newSwiper class="image-slides" [config]="config" >
-          <ng-template swiperSlide>
-            <div class="swiper-zoom-container">
-              <div class="swiper-zoom-target">
-                <div #imgContainer></div>
-                <canvas #canvasContainer></canvas>
+        <div *ngIf="!showDefaultMap">
+          <swiper #newSwiper class="image-slides" [config]="config">
+            <ng-template swiperSlide>
+              <div class="swiper-zoom-container">
+                <div class="swiper-zoom-target">
+                  <div #imgContainer></div>
+                  <canvas #canvasContainer></canvas>
+                </div>
               </div>
-            </div>
-          </ng-template>
-        </swiper>
-        <!-- <div #imgContainer></div>
-        <us-map #usMapContainer (click)="testSvgConvert()"></us-map> -->
-        <!-- <img src="assets/icon/favicon.png"(click)="openPreview()" /> -->
-
+            </ng-template>
+          </swiper>
+        </div>
       </div>
       <div *ngIf="this.currentLicensePlates.length == 0">
         <ion-button (click)="search()" style="margin-top: 30px;">
@@ -80,7 +74,40 @@
           Asc','').replace(' Desc','')}}</ion-text>
         <ion-icon name="arrow-up-outline" *ngIf="this.sortArray[this.currentSort].indexOf('Desc') > 0"></ion-icon>
         <ion-icon name="arrow-down-outline" *ngIf="this.sortArray[this.currentSort].indexOf('Asc') > 0"></ion-icon>
+        <div style="margin-left: auto;">
+          <ion-icon name="bar-chart" id="hover-trigger" style="font-size: 20px;"></ion-icon>
+        </div>
       </div>
+      <ion-popover trigger="hover-trigger" triggerAction="hover">
+        <ng-template>
+          <ion-content class="ion-padding">
+            <ion-label>Map Legend</ion-label>
+            <ul class="legend-marker">
+              <li>
+                <div class="car"></div><span>Car</span>
+              </li>
+              <li>
+                <div class="truck"></div><span>Truck</span>
+              </li>
+              <li>
+                <div class="other"></div><span>Other</span>
+              </li>
+              <li>
+                <div class="truck-car"></div><span>Truck & Car</span>
+              </li>
+              <li>
+                <div class="truck-other"></div><span>Truck & Other</span>
+              </li>
+              <li>
+                <div class="car-other"></div><span>Car & Other</span>
+              </li>
+              <li>
+                <div class="truck-car-other"></div><span>Truck, Car & Other</span>
+              </li>
+            </ul>
+          </ion-content>
+        </ng-template>
+      </ion-popover>
       <div style="height: calc(60vh); overflow-y: scroll;" *ngIf="this.currentLicensePlates.length > 0">
         <ion-list>
           <ion-item-sliding #slides *ngFor="let glp of this.currentLicensePlates; index as i;" (click)="view(glp, i)">
@@ -92,6 +119,29 @@
               <ion-label slot="">
                 {{glp?.licensePlate?.state?.name}}<br>
                 <p style="font-size: 14px;">{{glp?.createdDateTime | dfnsFormat: 'MMM d \'at\' h:mm a' }}</p>
+                <ul class="plate-color-marker">
+                  <li *ngIf="hasCarType(glp) && !hasTruckType(glp) && !hasOtherType(glp)">
+                    <div class="car"></div><span>Car</span>
+                  </li>
+                  <li *ngIf="!hasCarType(glp) && hasTruckType(glp) && !hasOtherType(glp)">
+                    <div class="truck"></div><span>Truck</span>
+                  </li>
+                  <li *ngIf="!hasCarType(glp) && !hasTruckType(glp) && hasOtherType(glp)">
+                    <div class="other"></div><span>Other</span>
+                  </li>
+                  <li *ngIf="hasCarType(glp) && hasTruckType(glp) && !hasOtherType(glp)">
+                    <div class="truck-car"></div><span>Truck & Car</span>
+                  </li>
+                  <li *ngIf="!hasCarType(glp) && hasTruckType(glp) && hasOtherType(glp)">
+                    <div class="truck-other"></div><span>Truck & Other</span>
+                  </li>
+                  <li *ngIf="hasCarType(glp) && !hasTruckType(glp) && hasOtherType(glp)">
+                    <div class="car-other"></div><span>Car & Other</span>
+                  </li>
+                  <li *ngIf="hasCarType(glp) && hasTruckType(glp) && hasOtherType(glp)">
+                    <div class="truck-car-other"></div><span>Truck, Car & Other</span>
+                  </li>
+                </ul>
               </ion-label>
             </ion-item>
             <ion-item-options side="end">

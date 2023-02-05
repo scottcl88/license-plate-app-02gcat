@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, EventEmitter, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, IonItemSliding, ModalController, PopoverController } from '@ionic/angular';
-import { GameLicensePlateModel, GameModel, LicensePlateModel, LicensePlatesClient } from 'src/api';
+import { GameLicensePlateModel, GameModel, LicensePlateModel, LicensePlatesClient, VehicleType } from 'src/api';
 import { environment } from 'src/environments/environment';
 import { CoreUtilService } from '../core-utils';
 import { ModalSearchLicensePage } from '../modal-search-license/modal-search-license.page';
@@ -110,6 +110,16 @@ export class HomePage implements OnInit {
     //Swiper instance will be displayed in console
   }
 
+  hasCarType(glp: GameLicensePlateModel) {
+    return glp.vehicleTypes?.includes(VehicleType.Car);
+  }
+  hasTruckType(glp: GameLicensePlateModel) {
+    return glp.vehicleTypes?.includes(VehicleType.Truck);
+  }
+  hasOtherType(glp: GameLicensePlateModel) {
+    return glp.vehicleTypes?.includes(VehicleType.Other);
+  }
+
   isZoomed: boolean = false;
 
   // zoomChange = (): any => {
@@ -200,11 +210,11 @@ export class HomePage implements OnInit {
     //   $canvas.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
     //   return $canvas;
     // }
- 
+
     const width = $svg.clientWidth;
     const height = $svg.clientHeight;
     let w = width;
-    let h = height; 
+    let h = height;
     let ratio = PIXEL_RATIO;
     const $canvas = this.canvasContainer.nativeElement;
     $canvas.width = w * ratio;
@@ -213,6 +223,7 @@ export class HomePage implements OnInit {
     $canvas.style.height = h + "px";
     $canvas.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
 
+    this.showDefaultMap = false;
   }
 
   async openPreview() {
@@ -352,7 +363,7 @@ export class HomePage implements OnInit {
       else if (data.saved) {
         glp.createdDateTime = new Date(data.date);
         glp.location = data.location;
-        glp.vehicleType = data.vehicleType;
+        glp.vehicleTypes = data.vehicleTypes;
         this.updateLicensePlateFromGame(glp);
       }
     }
@@ -435,6 +446,7 @@ export class HomePage implements OnInit {
     newGlp.licensePlate = new LicensePlateModel();
     newGlp.licensePlate.init(lp);
     newGlp.licensePlate.createdDateTime = new Date();
+    newGlp.vehicleTypes = [VehicleType.Car];
 
     console.log("Adding new glp with id: ", largestGlpId);
     this.currentGame.licensePlates.push(newGlp);
@@ -456,6 +468,8 @@ export class HomePage implements OnInit {
     if (!this.currentGame.licensePlates) {
       this.currentGame.licensePlates = [];
     }
+
+    glp.modifiedDateTime = new Date();
 
     let foundGlpIndex = this.currentGame.licensePlates.findIndex(x => x.gameLicensePlateId == glp?.gameLicensePlateId);
     if (foundGlpIndex >= 0) {
@@ -529,6 +543,7 @@ export class HomePage implements OnInit {
   }
 
   updateLicensePlateLists() {
+    this.showDefaultMap = true;
     console.log("Updating lists with count: ", this.currentGame?.licensePlates?.length);
 
     this.usMapService.coordinates.forEach(x => x.c = this.usMapService.defaultStateColor);
@@ -542,14 +557,35 @@ export class HomePage implements OnInit {
       if (filteredLpIndex >= 0) {
         this.filteredLicensePlates.splice(filteredLpIndex, 1);
       }
-
-      let usMapIndex = this.usMapService.coordinates.findIndex(x => x.id == lp?.licensePlate?.state?.abbreviation);
-      if (usMapIndex >= 0) {
-        this.usMapService.coordinates[usMapIndex].c = this.usMapService.selectedStateColor;
-      }
+      this.colorState(lp);
     });
     this.currentLicensePlates = this.currentGame?.licensePlates ?? [];
+    try {
+      this.svgConvert();
+    } catch (err) {
+      console.log("svgConvert after update lists failed");
+    }
   }
 
+  colorState(glp: GameLicensePlateModel) {
+    let usMapIndex = this.usMapService.coordinates.findIndex(x => x.id == glp?.licensePlate?.state?.abbreviation);
+    if (usMapIndex >= 0) {
+      if (this.hasCarType(glp) && !this.hasTruckType(glp) && !this.hasOtherType(glp)) {
+        this.usMapService.coordinates[usMapIndex].c = this.usMapService.selectedStateColor;
+      } else if (!this.hasCarType(glp) && this.hasTruckType(glp) && !this.hasOtherType(glp)) {
+        this.usMapService.coordinates[usMapIndex].c = this.usMapService.selectedTruckColor;
+      } else if (!this.hasCarType(glp) && !this.hasTruckType(glp) && this.hasOtherType(glp)) {
+        this.usMapService.coordinates[usMapIndex].c = this.usMapService.selectedOtherColor;
+      } else if (this.hasCarType(glp) && this.hasTruckType(glp) && !this.hasOtherType(glp)) {
+        this.usMapService.coordinates[usMapIndex].c = this.usMapService.selectedTruckAndCarColor;
+      } else if (this.hasCarType(glp) && !this.hasTruckType(glp) && this.hasOtherType(glp)) {
+        this.usMapService.coordinates[usMapIndex].c = this.usMapService.selectedCarAndOtherColor;
+      } else if (!this.hasCarType(glp) && this.hasTruckType(glp) && this.hasOtherType(glp)) {
+        this.usMapService.coordinates[usMapIndex].c = this.usMapService.selectedTruckAndOtherColor;
+      } else if (this.hasCarType(glp) && this.hasTruckType(glp) && this.hasOtherType(glp)) {
+        this.usMapService.coordinates[usMapIndex].c = this.usMapService.selectedAllColor;
+      }
+    }
+  }
 
 }

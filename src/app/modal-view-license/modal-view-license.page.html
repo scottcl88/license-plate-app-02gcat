@@ -1,29 +1,39 @@
 <!--
 Copyright 2023 Scott Lewis, All rights reserved.
 -->
-<app-header title="View License Plate" titleMarginLeft="0px" [menuButton]="false">
+<app-header title="Found License Plate" titleMarginLeft="0px" [menuButton]="false">
   <ion-buttons slot="end">
     <ion-button (click)="dismiss(false, false)">
       <ion-icon name="close-sharp"></ion-icon>
     </ion-button>
   </ion-buttons>
 </app-header>
-
 <ion-content>
   <div id="container" style="text-align: center;">
     <div style="margin-bottom: 30px;">
       <h3>{{glp?.licensePlate?.state?.name}}</h3>
       <ion-img [src]="imageBaseUrl+glp?.licensePlate?.licensePlateId" [alt]="glp?.licensePlate?.state?.name"
         (ionError)="onImageError()" *ngIf="!imageFailed"
-        style="width: 70%; margin-left: auto; margin-right: auto; margin-bottom: 15px;"></ion-img>
+        style="width: 60%; margin-left: auto; margin-right: auto; margin-bottom: 15px;"></ion-img>
       <!-- <p>{{glp?.createdDateTime | dfnsFormat: 'MMMM d \'at\' h:mm a'}}</p> -->
       <ion-item>
         <ion-label>Found</ion-label>
         <ion-datetime-button datetime="datetime"></ion-datetime-button>
       </ion-item>
       <ion-item>
-        <ion-label>Vehicle Type</ion-label>
-        <ion-button (click)="openVehiclePicker()" color="medium">{{vehicleType}}</ion-button>
+        <ion-label>Vehicle Type(s) Found</ion-label>
+      </ion-item>
+      <ion-item>
+        <ion-label>Car</ion-label>
+        <ion-checkbox value="Car" [checked]="isCarChecked" (ionChange)="checkedChange('Car')" [disabled]="isCarDisabled"></ion-checkbox>
+      </ion-item>
+      <ion-item>
+        <ion-label>Truck</ion-label>
+        <ion-checkbox value="Truck" [checked]="isTruckChecked" (ionChange)="checkedChange('Truck')" [disabled]="isTruckDisabled"></ion-checkbox>
+      </ion-item>
+      <ion-item>
+        <ion-label>Other</ion-label>
+        <ion-checkbox value="Other" [checked]="isOtherChecked" (ionChange)="checkedChange('Other')" [disabled]="isOtherDisabled"></ion-checkbox>
       </ion-item>
       <!-- <ion-item>
         <ion-label>Location</ion-label>
@@ -31,13 +41,15 @@ Copyright 2023 Scott Lewis, All rights reserved.
         <ion-icon name="pencil" style="margin-left: 20px;"></ion-icon>
       </ion-item> -->
     </div>
-    <ion-button (click)="dismiss(false, true)" *ngIf="isDirty" color="success" style="margin-right: 10px;">Save Changes</ion-button>
-    <ion-button (click)="cancel()" *ngIf="isDirty" color="secondary">Cancel</ion-button>
+    <ion-button (click)="cancel()" *ngIf="isDirty" color="secondary" style="margin-right: 10px;">Cancel</ion-button>
+    <ion-button (click)="dismiss(false, true)" *ngIf="isDirty" color="success">Save
+      Changes</ion-button>
     <ion-button (click)="dismiss(true, false)" *ngIf="!isDirty" color="danger">Remove state</ion-button>
   </div>
-  <ion-modal [keepContentsMounted]="true" >
+  <ion-modal [keepContentsMounted]="true">
     <ng-template>
-      <ion-datetime id="datetime" [value]="isoDate" [showDefaultButtons]="true" (ionChange)="dateChanged($event)"></ion-datetime>
+      <ion-datetime id="datetime" [value]="isoDate" [showDefaultButtons]="true"
+        (ionChange)="dateChanged($event)"></ion-datetime>
     </ng-template>
   </ion-modal>
 </ion-content>
