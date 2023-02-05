@@ -33,15 +33,38 @@
         <h5>You found all the states!</h5>
         <ion-button (click)="confirmNewGame()" style="margin-bottom: 30px;">Start new game</ion-button>
       </div>
-      <div *ngIf="this.currentLicensePlates.length < this.allLicensePlates.length">
-        <p style="text-align: center; font-weight: 800;">Found {{this.currentLicensePlates.length}} of
-          {{this.allLicensePlates.length}} States</p>
-        <ion-fab>
-          <ion-fab-button (click)="search()">
-            <ion-icon name="add"></ion-icon>
-          </ion-fab-button>
-        </ion-fab>
-        <us-map></us-map>
+      <div *ngIf="this.currentLicensePlates.length < this.allLicensePlates.length" class="map-container">
+        <ion-text style="text-align: center; font-weight: bold; margin-top: 5px; display: block;">Found {{this.currentLicensePlates.length}} of
+          {{this.allLicensePlates.length}} States</ion-text>
+        <div [style.opacity]="addStateOpacity">
+          <ion-fab>
+            <ion-fab-button (click)="search()">
+              <ion-icon name="add"></ion-icon>
+            </ion-fab-button>
+          </ion-fab>
+        </div>
+        <!-- <ion-slides [options]="sliderOpts" class="preview-slides">
+          <ion-slide>
+            <ion-icon name="search" (click)="openPreview()"></ion-icon>
+          </ion-slide>
+        </ion-slides> -->
+        <div *ngIf="showDefaultMap">
+          <us-map #usMapContainer></us-map>
+        </div>
+        <swiper #newSwiper class="image-slides" [config]="config" >
+          <ng-template swiperSlide>
+            <div class="swiper-zoom-container">
+              <div class="swiper-zoom-target">
+                <div #imgContainer></div>
+                <canvas #canvasContainer></canvas>
+              </div>
+            </div>
+          </ng-template>
+        </swiper>
+        <!-- <div #imgContainer></div>
+        <us-map #usMapContainer (click)="testSvgConvert()"></us-map> -->
+        <!-- <img src="assets/icon/favicon.png"(click)="openPreview()" /> -->
+
       </div>
       <div *ngIf="this.currentLicensePlates.length == 0">
         <ion-button (click)="search()" style="margin-top: 30px;">
@@ -63,8 +86,8 @@
           <ion-item-sliding #slides *ngFor="let glp of this.currentLicensePlates; index as i;" (click)="view(glp, i)">
             <ion-item>
               <ion-label slot="start" *ngIf="!isImageError(i)">
-                <ion-img [src]="imageBaseUrl+glp?.licensePlate?.licensePlateId"
-                  [alt]="glp?.licensePlate?.state?.name" width="125px;" (ionError)="imageLoadError(i)"></ion-img>
+                <ion-img [src]="imageBaseUrl+glp?.licensePlate?.licensePlateId" [alt]="glp?.licensePlate?.state?.name"
+                  width="125px;" (ionError)="imageLoadError(i)"></ion-img>
               </ion-label>
               <ion-label slot="">
                 {{glp?.licensePlate?.state?.name}}<br>

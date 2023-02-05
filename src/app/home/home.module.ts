@@ -28,7 +28,8 @@ import { ModalEditGamePageModule } from '../modal-edit-game/modal-edit-game.modu
     UsMapModule,
     ModalViewImageModule,
     SwiperModule,
-    ModalEditGamePageModule
+    ModalEditGamePageModule,
+    SwiperModule
   ],
   declarations: [HomePage]
 })

@@ -2,7 +2,7 @@
 Copyright 2023 Scott Lewis, All rights reserved.
 **/
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, IonItemSliding, ModalController, PopoverController } from '@ionic/angular';
 import { GameLicensePlateModel, GameModel, LicensePlateModel, LicensePlatesClient } from 'src/api';
@@ -15,6 +15,11 @@ import { Account } from '../_models';
 import { UsMapService } from '../us-map/us-map.service';
 import { ModalEditGamePage } from '../modal-edit-game/modal-edit-game.page';
 import { GameService } from '../game.service';
+import { ModalViewImagePage } from '../modal-view-image/modal-view-image.page';
+import { UsMapComponent } from '../us-map/us-map.component';
+import Swiper, { SwiperOptions, Zoom } from 'swiper';
+import { ZoomOptions } from 'swiper/types';
+import { EventsParams, SwiperComponent } from 'swiper/angular';
 
 @Component({
   selector: 'app-home',
@@ -48,6 +53,11 @@ export class HomePage implements OnInit {
   options = {
     addSuffix: true
   };
+  config: SwiperOptions = {
+    zoom: {
+      maxRatio: 2
+    } as ZoomOptions
+  };
 
   sliderOpts = {
     zoom: false,
@@ -59,8 +69,18 @@ export class HomePage implements OnInit {
   public sortArray: string[] = ["Name Asc", "Name Desc", "Added Asc", "Added Desc"];
   public currentSort: number = 0;
 
+  @ViewChild("imgContainer", { static: false }) imgContainer: ElementRef;
+  @ViewChild("usMapContainer") usMap: UsMapComponent;
+  @ViewChild("canvasContainer", { static: false }) canvasContainer: ElementRef;
+  @ViewChild("newSwiper", { static: false }) newSwiper: SwiperComponent;
+
+  public showDefaultMap: boolean = true;
+  public addStateOpacity: string = "1";
+
   constructor(private usMapService: UsMapService, private gameService: GameService, private router: Router, private popoverController: PopoverController, private alertController: AlertController,
-    private modalController: ModalController, private coreUtilService: CoreUtilService, private httpClient: HttpClient) { }
+    private modalController: ModalController, private coreUtilService: CoreUtilService, private httpClient: HttpClient) {
+    Swiper.use([Zoom]);
+  }
 
   async ngOnInit() {
     this.availableStates = HomePage.STATES;
@@ -71,6 +91,151 @@ export class HomePage implements OnInit {
     this.isAuthenticated = await this.gameService.getIsAuthenticated();
     console.log("User isAuthenticated: ", this.isAuthenticated);
     this.getLicensePlates();
+  }
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.svgConvert();
+      console.log("newSwiper: ", this.newSwiper);
+      this.newSwiper.s_zoomChange.subscribe(
+        next => {
+          console.log("zoom subscribe change");
+          setTimeout(() => {
+
+            this.addStateOpacity = ".5";
+            this.isZoomed = true;
+          }, 500)
+        }
+      );
+    }, 1000);
+    //Swiper instance will be displayed in console
+  }
+
+  isZoomed: boolean = false;
+
+  // zoomChange = (): any => {
+  //   console.log("ZoomChange called");
+  //   this.addStateOpacity = ".5";
+  //   this.addStateStyle = "opacity: 1 !important";
+  //   this.isZoomed = true;
+  // }
+
+  svgConvert() {
+    // console.log("svgContainer: ", this.usMap.svgContainer);
+
+    //Select the element:
+    const $svg = this.usMap.svgContainer.nativeElement.querySelector('svg')
+    const $holder = this.imgContainer.nativeElement;
+
+    // Serialize it as xml string:
+    const svgAsXML = (new XMLSerializer()).serializeToString($svg)
+
+    // Encode it as a data string:
+    const svgData = `data:image/svg+xml,${encodeURIComponent(svgAsXML)}`
+
+    // console.log("svgData: ", svgData);
+
+    const destroyChildren = ($element: any) => {
+      while ($element.firstChild) {
+        const $lastChild = $element.lastChild ?? false
+        if ($lastChild) $element.removeChild($lastChild)
+      }
+    }
+
+    const loadImage = async (url: any) => {
+      const $img = document.createElement('img')
+      $img.src = url
+      return new Promise((resolve, reject) => {
+        $img.onload = () => resolve($img)
+        $img.onerror = reject
+      })
+    }
+
+    const convertSVGtoImg = async (e: any) => {
+      // const $btn = e.target
+      const format = 'png';
+      // $label.textContent = format
+
+      destroyChildren($holder)
+
+      const img = (await loadImage(svgData) as any);
+
+      const $canvas = this.canvasContainer.nativeElement;//document.createElement('canvas')
+      const width = $svg.clientWidth
+      const height = $svg.clientHeight
+      $canvas.width = width;//$svg.clientWidth
+      $canvas.height = height;//$svg.clientHeight
+      $canvas.getContext('2d')?.drawImage(img, 0, 0, width, height)
+
+      const dataURL = await $canvas.toDataURL(`image/${format}`, 1.0);
+
+      const $img = document.createElement('img')
+      $img.src = dataURL
+      // $holder?.appendChild($img)
+
+      this.showDefaultMap = false;
+    }
+
+    convertSVGtoImg(null);
+
+    let PIXEL_RATIO = (() => {
+      const $canvas = this.canvasContainer.nativeElement;
+      let ctx = $canvas.getContext("2d"),
+        dpr = window.devicePixelRatio || 1,
+        bsr = ctx.webkitBackingStorePixelRatio ||
+          ctx.mozBackingStorePixelRatio ||
+          ctx.msBackingStorePixelRatio ||
+          ctx.oBackingStorePixelRatio ||
+          ctx.backingStorePixelRatio || 1;
+
+      return dpr / bsr;
+    })();
+
+    // let createHiDPICanvas = (w: any, h: any, ratio: any) => {
+    //   if (!ratio) { ratio = PIXEL_RATIO; }
+    //   const $canvas = this.canvasContainer.nativeElement;
+    //   $canvas.width = w * ratio;
+    //   $canvas.height = h * ratio;
+    //   $canvas.style.width = w + "px";
+    //   $canvas.style.height = h + "px";
+    //   $canvas.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
+    //   return $canvas;
+    // }
+ 
+    const width = $svg.clientWidth;
+    const height = $svg.clientHeight;
+    let w = width;
+    let h = height; 
+    let ratio = PIXEL_RATIO;
+    const $canvas = this.canvasContainer.nativeElement;
+    $canvas.width = w * ratio;
+    $canvas.height = h * ratio;
+    $canvas.style.width = w + "px";
+    $canvas.style.height = h + "px";
+    $canvas.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
+
+  }
+
+  async openPreview() {
+    const $svg = this.usMap.svgContainer.nativeElement.querySelector('svg')
+
+    // Serialize it as xml string:
+    const svgAsXML = (new XMLSerializer()).serializeToString($svg)
+
+    // Encode it as a data string:
+    const svgData = `data:image/svg+xml,${encodeURIComponent(svgAsXML)}`
+
+    // console.log("svgData: ", svgData);
+    const modal = await this.modalController.create({
+      component: ModalViewImagePage,
+      cssClass: 'transparent-modal',
+      componentProps: {
+        img: "",
+        svgData: svgData,
+        mapHeight: $svg.clientHeight,
+        mapWidth: $svg.clientWidth
+      }
+    });
+    modal.present();
   }
 
   isImageError(index: number) {

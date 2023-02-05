@@ -1,12 +1,30 @@
 <ion-content>
-  <ion-slides [options]="sliderOpts">
+  <!-- <ion-slides [options]="sliderOpts">
     <ion-slide>
       <div class="swiper-zoom-container">
-        <!-- <img src="assets/img/{{ img }}.png"> -->
-        <us-map style="position: absolute;"></us-map>
+        <us-map #test></us-map>
       </div>
     </ion-slide>
-  </ion-slides>
+  </ion-slides> -->
+  <!-- slides.component.html -->
+          <!-- <div #imgContainer1></div> -->
+  <swiper #newSwiper class="image-slides" [config]="config">
+    <ng-template swiperSlide>
+      <div class="swiper-zoom-container">
+        <div class="swiper-zoom-target"> 
+          <!-- <img src="assets/icon/favicon.png" />  -->
+          <canvas #canvasContainer></canvas>
+        </div>
+      </div>
+    </ng-template>
+  </swiper>
+  <!-- <swiper #swiper [zoom]="true" (swiper)="swiperInit($event)">
+    <ng-template swiperSlide>
+      <div class="swiper-zoom-container">
+        <us-map #test></us-map>
+      </div>
+    </ng-template>
+  </swiper> -->
 </ion-content>
 
 <ion-footer>

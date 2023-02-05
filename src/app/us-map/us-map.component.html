@@ -1,5 +1,5 @@
 
-<div id="svgContainer">
+<div id="svgContainer" #svgContainer >
     <svg id="svgMap" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" [style]="usMapService.svgStyle">
         <rect [attr.fill]="coordinates[18].c" [attr.stroke]="strokeColor" x="895" y="130" width="30" height="17" id="MA_1" (click)="onUsMapClick('MA')"/>
         <rect [attr.fill]="coordinates[38].c" [attr.stroke]="strokeColor" x="890" y="182" width="21" height="17" id="RI_1" (click)="onUsMapClick('RI')"/>
