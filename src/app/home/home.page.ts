@@ -74,12 +74,14 @@ export class HomePage implements OnInit {
   public currentSort: number = 0;
 
   @ViewChild("imgContainer", { static: false }) imgContainer: ElementRef;
-  @ViewChild("usMapContainer") usMap: UsMapComponent;
+  @ViewChild("usMapContainer", { static: false }) usMap: UsMapComponent;
   @ViewChild("canvasContainer", { static: false }) canvasContainer: ElementRef;
   @ViewChild("newSwiper", { static: false }) newSwiper: SwiperComponent;
 
+  public showZoomMap: boolean = true;
   public showDefaultMap: boolean = true;
   public addStateOpacity: string = "1";
+  public isZoomed: boolean = false;
 
   constructor(private usMapService: UsMapService, private gameService: GameService, private router: Router, private popoverController: PopoverController, private alertController: AlertController,
     private modalController: ModalController, private coreUtilService: CoreUtilService, private httpClient: HttpClient) {
@@ -98,18 +100,14 @@ export class HomePage implements OnInit {
   }
   ngAfterViewInit(): void {
     setTimeout(() => {
-      this.svgConvert();
+      //this.svgConvert();
       console.log("newSwiper: ", this.newSwiper);
-      this.newSwiper.s_zoomChange.subscribe(
-        next => {
-          console.log("zoom subscribe change");
-          setTimeout(() => {
-
-            this.addStateOpacity = ".5";
-            this.isZoomed = true;
-          }, 500)
-        }
-      );
+      // this.newSwiper.s_zoomChange.subscribe(
+      //   next => {
+      //     console.log("zoom subscribe change");
+      //     this.isZoomed = true;
+      //   }
+      // );
     }, 1000);
     //Swiper instance will be displayed in console
   }
@@ -124,7 +122,6 @@ export class HomePage implements OnInit {
     return glp.vehicleTypes?.includes(VehicleType.Other);
   }
 
-  isZoomed: boolean = false;
 
   // zoomChange = (): any => {
   //   console.log("ZoomChange called");
@@ -134,6 +131,9 @@ export class HomePage implements OnInit {
   // }
 
   svgConvert() {
+    console.log("svgConvert");
+    this.showDefaultMap = true;
+    this.showZoomMap = true;
     // console.log("svgContainer: ", this.usMap.svgContainer);
 
     //Select the element:
@@ -165,6 +165,7 @@ export class HomePage implements OnInit {
     }
 
     const convertSVGtoImg = async (e: any) => {
+      console.log("convertSVGtoImg");
       // const $btn = e.target
       const format = 'png';
       // $label.textContent = format
@@ -182,13 +183,15 @@ export class HomePage implements OnInit {
 
       const dataURL = await $canvas.toDataURL(`image/${format}`, 1.0);
 
-      const $img = document.createElement('img')
-      $img.src = dataURL
+      //const $img = document.createElement('img')
+      //$img.src = dataURL
       // $holder?.appendChild($img)
 
       this.showDefaultMap = false;
+      this.showZoomMap = true;
     }
 
+    // this.showZoomMap = true;
     convertSVGtoImg(null);
 
     let PIXEL_RATIO = (() => {
@@ -215,19 +218,20 @@ export class HomePage implements OnInit {
     //   return $canvas;
     // }
 
-    const width = $svg.clientWidth;
-    const height = $svg.clientHeight;
-    let w = width;
-    let h = height;
-    let ratio = PIXEL_RATIO;
-    const $canvas = this.canvasContainer.nativeElement;
-    $canvas.width = w * ratio;
-    $canvas.height = h * ratio;
-    $canvas.style.width = w + "px";
-    $canvas.style.height = h + "px";
-    $canvas.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
+    // const width = $svg.clientWidth;
+    // const height = $svg.clientHeight;
+    // let w = width;
+    // let h = height;
+    // let ratio = PIXEL_RATIO;
+    // const $canvas = this.canvasContainer.nativeElement;
+    // $canvas.width = w * ratio;
+    // $canvas.height = h * ratio;
+    // $canvas.style.width = w + "px";
+    // $canvas.style.height = h + "px";
+    // $canvas.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
 
-    this.showDefaultMap = false;
+    // this.showDefaultMap = false;
+    // this.showZoomMap = true;
   }
 
   async openPreview() {
@@ -308,10 +312,15 @@ export class HomePage implements OnInit {
       console.log("recordLocationOption: ", recordLocationOption);
       if (recordLocationOption && recordLocationOption.value) {
         if (recordLocationOption.value == "alwaysAllow") {
-          const coordinates = await Geolocation.getCurrentPosition();
-          let model = new CoordinatesPositionModel();
-          model.init(coordinates.coords);
-          this.addLicensePlateToGame(data.selectedState, model);
+          try {
+            const coordinates = await Geolocation.getCurrentPosition();
+            let model = new CoordinatesPositionModel();
+            model.init(coordinates.coords);
+            this.addLicensePlateToGame(data.selectedState, model);
+          } catch (err) {
+            console.error("Failed to getCurrentPosition", err);
+            this.addLicensePlateToGame(data.selectedState, undefined);
+          }
         } else if (recordLocationOption.value == "neverAllow") {
           this.addLicensePlateToGame(data.selectedState, undefined);
         } else {
@@ -336,10 +345,15 @@ export class HomePage implements OnInit {
     if (data && data.saved) {
       await Preferences.set({ key: "RecordLocationOption", value: data.value });
       if (data.value == "alwaysAllow" || data.value == "allowNow") {
-        const coordinates = await Geolocation.getCurrentPosition();
-        let model = new CoordinatesPositionModel();
-        model.init(coordinates.coords);
-        this.addLicensePlateToGame(selectedState, model);
+        try {
+          const coordinates = await Geolocation.getCurrentPosition();
+          let model = new CoordinatesPositionModel();
+          model.init(coordinates.coords);
+          this.addLicensePlateToGame(data.selectedState, model);
+        } catch (err) {
+          console.error("Failed to getCurrentPosition", err);
+          this.addLicensePlateToGame(data.selectedState, undefined);
+        }
       }
     } else {
       this.addLicensePlateToGame(selectedState, undefined);
@@ -392,7 +406,7 @@ export class HomePage implements OnInit {
     const modal = await this.modalController.create({
       component: ModalViewLicensePage,
       componentProps: {
-        glp: glp,
+        glp: glp.clone(),
       },
     });
     modal.present();
@@ -403,6 +417,7 @@ export class HomePage implements OnInit {
         this.removeLicensePlateFromGame(glp);
       }
       else if (data.saved) {
+        console.log("data was saved, updating");
         glp.createdDateTime = new Date(data.date);
         glp.location = data.location;
         glp.vehicleTypes = data.vehicleTypes;
@@ -589,7 +604,7 @@ export class HomePage implements OnInit {
   }
 
   updateLicensePlateLists() {
-    this.showDefaultMap = true;
+    // this.showDefaultMap = true;
     console.log("Updating lists with count: ", this.currentGame?.licensePlates?.length);
 
     this.usMapService.coordinates.forEach(x => x.c = this.usMapService.defaultStateColor);
@@ -607,7 +622,7 @@ export class HomePage implements OnInit {
     });
     this.currentLicensePlates = this.currentGame?.licensePlates ?? [];
     try {
-      this.svgConvert();
+      //this.svgConvert();
     } catch (err) {
       console.log("svgConvert after update lists failed");
     }

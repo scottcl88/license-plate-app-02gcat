@@ -44,10 +44,11 @@
             </ion-fab-button>
           </ion-fab>
         </div>
-        <div *ngIf="showDefaultMap">
+        <us-map #usMapContainer></us-map>
+        <!-- <div *ngIf="showDefaultMap">
           <us-map #usMapContainer></us-map>
         </div>
-        <div *ngIf="!showDefaultMap">
+        <div *ngIf="showZoomMap">
           <swiper #newSwiper class="image-slides" [config]="config">
             <ng-template swiperSlide>
               <div class="swiper-zoom-container">
@@ -58,7 +59,7 @@
               </div>
             </ng-template>
           </swiper>
-        </div>
+        </div> -->
       </div>
       <div *ngIf="this.currentLicensePlates.length == 0">
         <ion-button (click)="search()" style="margin-top: 30px;">
@@ -76,8 +77,8 @@
           <ion-icon name="arrow-up-outline" *ngIf="this.sortArray[this.currentSort].indexOf('Desc') > 0"></ion-icon>
           <ion-icon name="arrow-down-outline" *ngIf="this.sortArray[this.currentSort].indexOf('Asc') > 0"></ion-icon>
         </div>
-        <div style="margin-left: auto;">
-          <ion-icon name="bar-chart" id="hover-trigger" style="font-size: 20px;"></ion-icon>
+        <div style="margin-left: auto;" id="hover-trigger">
+          <ion-icon name="bar-chart" style="font-size: 20px;"></ion-icon>
         </div>
       </div>
       <ion-popover trigger="hover-trigger" triggerAction="hover">

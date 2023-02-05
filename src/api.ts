@@ -3091,7 +3091,9 @@ export interface IAuthenticateResponse {
 
 export class CoordinatesPositionModel implements ICoordinatesPositionModel {
     latitude?: number;
+    readonly latitudeText?: string | undefined;
     longitude?: number;
+    readonly longitudeText?: string | undefined;
     accuracy?: number;
     altitudeAccuracy?: number | undefined;
     altitude?: number | undefined;
@@ -3110,7 +3112,9 @@ export class CoordinatesPositionModel implements ICoordinatesPositionModel {
     init(_data?: any) {
         if (_data) {
             this.latitude = _data["latitude"];
+            (<any>this).latitudeText = _data["latitudeText"];
             this.longitude = _data["longitude"];
+            (<any>this).longitudeText = _data["longitudeText"];
             this.accuracy = _data["accuracy"];
             this.altitudeAccuracy = _data["altitudeAccuracy"];
             this.altitude = _data["altitude"];
@@ -3129,7 +3133,9 @@ export class CoordinatesPositionModel implements ICoordinatesPositionModel {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["latitude"] = this.latitude;
+        data["latitudeText"] = this.latitudeText;
         data["longitude"] = this.longitude;
+        data["longitudeText"] = this.longitudeText;
         data["accuracy"] = this.accuracy;
         data["altitudeAccuracy"] = this.altitudeAccuracy;
         data["altitude"] = this.altitude;
@@ -3148,7 +3154,9 @@ export class CoordinatesPositionModel implements ICoordinatesPositionModel {
 
 export interface ICoordinatesPositionModel {
     latitude?: number;
+    latitudeText?: string | undefined;
     longitude?: number;
+    longitudeText?: string | undefined;
     accuracy?: number;
     altitudeAccuracy?: number | undefined;
     altitude?: number | undefined;

@@ -37,6 +37,9 @@ export class ModalViewLicensePage implements OnInit {
   public isTruckDisabled: boolean = false;
   public isOtherDisabled: boolean = false;
 
+  public latText: string = "";
+  public lngText: string = "";
+
   constructor(private logger: NGXLogger, private modalController: ModalController, private alertController: AlertController, public toastController: ToastController) {
   }
 
@@ -45,6 +48,8 @@ export class ModalViewLicensePage implements OnInit {
     this.location = this.glp.location ?? undefined;
     this.notes = this.glp.notes ?? "";
     this.vehicleTypes = this.glp.vehicleTypes ?? [VehicleType.Car];
+    this.latText = this.location?.latitude?.toPrecision(5) ?? "";
+    this.lngText = this.location?.longitude?.toPrecision(5) ?? "";
     this.updateChecked();
   }
 
@@ -160,6 +165,8 @@ export class ModalViewLicensePage implements OnInit {
     console.log("cancel changes");
     this.isoDate = formatISO(this.glp.createdDateTime);
     this.location = this.glp.location ?? undefined;
+    this.latText = this.location?.latitude?.toPrecision(5) ?? "";
+    this.lngText = this.location?.longitude?.toPrecision(5) ?? "";
     this.notes = this.glp.notes ?? "";
     this.vehicleTypes = this.glp.vehicleTypes ?? [VehicleType.Car];
     this.isCarChecked = true;

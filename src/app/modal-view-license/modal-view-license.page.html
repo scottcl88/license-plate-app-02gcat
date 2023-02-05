@@ -14,15 +14,15 @@ Copyright 2023 Scott Lewis, All rights reserved.
       <h3>{{glp?.licensePlate?.state?.name}}</h3>
       <ion-img [src]="imageBaseUrl+glp?.licensePlate?.licensePlateId" [alt]="glp?.licensePlate?.state?.name"
         (ionError)="onImageError()" *ngIf="!imageFailed"
-        style="width: 60%; margin-left: auto; margin-right: auto; margin-bottom: 15px;"></ion-img>
+        style="width: 50%; margin-left: auto; margin-right: auto; margin-bottom: 15px;"></ion-img>
       <!-- <p>{{glp?.createdDateTime | dfnsFormat: 'MMMM d \'at\' h:mm a'}}</p> -->
       <ion-item>
         <ion-label>Found</ion-label>
         <ion-datetime-button datetime="datetime"></ion-datetime-button>
       </ion-item>
-      <ion-item>
+      <!-- <ion-item>
         <ion-label>Vehicle Type(s) Found</ion-label>
-      </ion-item>
+      </ion-item> -->
       <ion-item>
         <ion-label>Car</ion-label>
         <ion-checkbox value="Car" [checked]="isCarChecked" (ionChange)="checkedChange('Car')"
@@ -43,8 +43,10 @@ Copyright 2023 Scott Lewis, All rights reserved.
         <ion-text>Not recorded</ion-text>
       </ion-item>
       <ion-item *ngIf="location != undefined">
-        <ion-label>Location (lat, lng)</ion-label>
-        <ion-text>{{this.location?.latitude ?? ""}}, {{this.location?.longitude ?? ""}}</ion-text>
+        <ion-label>Location
+          <p> (lat, lng)</p>
+        </ion-label>
+        <ion-text>{{this.latText}}, {{this.lngText}}</ion-text>
         <ion-icon slot="end" name="trash" style="margin-left: 20px;" (click)="deleteLocation()"></ion-icon>
       </ion-item>
       <ion-item>
@@ -52,8 +54,10 @@ Copyright 2023 Scott Lewis, All rights reserved.
         <ion-textarea [value]="notes" (ionChange)="notesChanged($event)"></ion-textarea>
       </ion-item>
     </div>
-    <ion-button (click)="cancel()" *ngIf="isDirty" color="secondary" style="margin-right: 10px;"><ion-icon name="arrow-undo" slot="start"></ion-icon>Cancel</ion-button>
-    <ion-button (click)="dismiss(false, true)" *ngIf="isDirty" color="success"><ion-icon name="save" slot="start"></ion-icon>Save
+    <ion-button (click)="cancel()" *ngIf="isDirty" color="secondary" style="margin-right: 10px;"><ion-icon
+        name="arrow-undo" slot="start"></ion-icon>Cancel</ion-button>
+    <ion-button (click)="dismiss(false, true)" *ngIf="isDirty" color="success"><ion-icon name="save"
+        slot="start"></ion-icon>Save
       Changes</ion-button>
     <ion-button (click)="dismiss(true, false)" *ngIf="!isDirty" color="danger"><ion-icon name="trash"
         slot="start"></ion-icon>Remove state</ion-button>
