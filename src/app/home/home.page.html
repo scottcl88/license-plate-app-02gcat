@@ -67,13 +67,15 @@
         </ion-button>
       </div>
       <div style="display: flex; opacity: .9; margin-top: 5px; margin-bottom: 10px;"
-        *ngIf="this.currentLicensePlates.length > 1" (click)="sortList()">
-        <ion-icon name="funnel" style="font-size: 25px;"></ion-icon>
-        <ion-text
-          style="font-size: 16px; margin-left: 5px; margin-top: 3px;">{{this.sortArray[this.currentSort].replace('
-          Asc','').replace(' Desc','')}}</ion-text>
-        <ion-icon name="arrow-up-outline" *ngIf="this.sortArray[this.currentSort].indexOf('Desc') > 0"></ion-icon>
-        <ion-icon name="arrow-down-outline" *ngIf="this.sortArray[this.currentSort].indexOf('Asc') > 0"></ion-icon>
+        *ngIf="this.currentLicensePlates.length > 1">
+        <div (click)="sortList()">
+          <ion-icon name="funnel" style="font-size: 25px;"></ion-icon>
+          <ion-text
+            style="font-size: 16px; margin-left: 5px; margin-top: 3px;">{{this.sortArray[this.currentSort].replace('
+            Asc','').replace(' Desc','')}}</ion-text>
+          <ion-icon name="arrow-up-outline" *ngIf="this.sortArray[this.currentSort].indexOf('Desc') > 0"></ion-icon>
+          <ion-icon name="arrow-down-outline" *ngIf="this.sortArray[this.currentSort].indexOf('Asc') > 0"></ion-icon>
+        </div>
         <div style="margin-left: auto;">
           <ion-icon name="bar-chart" id="hover-trigger" style="font-size: 20px;"></ion-icon>
         </div>
@@ -116,9 +118,11 @@
                 <ion-img [src]="imageBaseUrl+glp?.licensePlate?.licensePlateId" [alt]="glp?.licensePlate?.state?.name"
                   width="125px;" (ionError)="imageLoadError(i)"></ion-img>
               </ion-label>
-              <ion-label slot="">
+              <ion-label style="margin-top: 10px;">
                 {{glp?.licensePlate?.state?.name}}<br>
-                <p style="font-size: 14px;">{{glp?.createdDateTime | dfnsFormat: 'MMM d \'at\' h:mm a' }}</p>
+                <ion-text color="medium"
+                  style="font-size: 14px; margin-top: 5px; margin-bottom: 5px; display: block;">{{glp?.createdDateTime |
+                  dfnsFormat: 'MMM d \'at\' h:mm a' }}</ion-text>
                 <ul class="plate-color-marker">
                   <li *ngIf="hasCarType(glp) && !hasTruckType(glp) && !hasOtherType(glp)">
                     <div class="car"></div><span>Car</span>

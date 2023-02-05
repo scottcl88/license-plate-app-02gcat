@@ -364,6 +364,7 @@ export class HomePage implements OnInit {
         glp.createdDateTime = new Date(data.date);
         glp.location = data.location;
         glp.vehicleTypes = data.vehicleTypes;
+        glp.notes = data.notes;
         this.updateLicensePlateFromGame(glp);
       }
     }

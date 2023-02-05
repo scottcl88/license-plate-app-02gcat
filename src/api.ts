@@ -3521,6 +3521,7 @@ export class GameLicensePlateModel implements IGameLicensePlateModel {
     gameLicensePlateId?: number;
     licensePlate?: LicensePlateModel;
     location?: string | undefined;
+    notes?: string | undefined;
     vehicleTypes?: VehicleType[] | undefined;
 
     constructor(data?: IGameLicensePlateModel) {
@@ -3540,6 +3541,7 @@ export class GameLicensePlateModel implements IGameLicensePlateModel {
             this.gameLicensePlateId = _data["gameLicensePlateId"];
             this.licensePlate = _data["licensePlate"] ? LicensePlateModel.fromJS(_data["licensePlate"]) : <any>undefined;
             this.location = _data["location"];
+            this.notes = _data["notes"];
             if (Array.isArray(_data["vehicleTypes"])) {
                 this.vehicleTypes = [] as any;
                 for (let item of _data["vehicleTypes"])
@@ -3563,6 +3565,7 @@ export class GameLicensePlateModel implements IGameLicensePlateModel {
         data["gameLicensePlateId"] = this.gameLicensePlateId;
         data["licensePlate"] = this.licensePlate ? this.licensePlate.toJSON() : <any>undefined;
         data["location"] = this.location;
+        data["notes"] = this.notes;
         if (Array.isArray(this.vehicleTypes)) {
             data["vehicleTypes"] = [];
             for (let item of this.vehicleTypes)
@@ -3586,6 +3589,7 @@ export interface IGameLicensePlateModel {
     gameLicensePlateId?: number;
     licensePlate?: LicensePlateModel;
     location?: string | undefined;
+    notes?: string | undefined;
     vehicleTypes?: VehicleType[] | undefined;
 }
 

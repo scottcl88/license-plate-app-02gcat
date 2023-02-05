@@ -35,6 +35,10 @@ Copyright 2023 Scott Lewis, All rights reserved.
         <ion-label>Other</ion-label>
         <ion-checkbox value="Other" [checked]="isOtherChecked" (ionChange)="checkedChange('Other')" [disabled]="isOtherDisabled"></ion-checkbox>
       </ion-item>
+      <ion-item>
+        <ion-label position="floating">Notes</ion-label>
+        <ion-textarea [value]="notes" (ionChange)="notesChanged($event)"></ion-textarea>
+      </ion-item>
       <!-- <ion-item>
         <ion-label>Location</ion-label>
         <ion-text>-81.232, 23.233</ion-text>

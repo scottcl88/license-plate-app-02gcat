@@ -22,6 +22,7 @@ export class ModalViewLicensePage implements OnInit {
   public imageFailed: boolean = false;
   public isoDate: string;
   public location: string;
+  public notes: string;
   public vehicleTypes: VehicleType[];
   public isDirty: boolean = false;
 
@@ -41,10 +42,8 @@ export class ModalViewLicensePage implements OnInit {
   async ngOnInit() {
     this.isoDate = formatISO(this.glp.createdDateTime);
     this.location = this.glp.location ?? "";
+    this.notes = this.glp.notes ?? "";
     this.vehicleTypes = this.glp.vehicleTypes ?? [VehicleType.Car];
-    // this.isCarChecked = true;
-    // this.isTruckChecked = false;
-    // this.isOtherChecked = false;
     this.updateChecked();
   }
 
@@ -56,8 +55,14 @@ export class ModalViewLicensePage implements OnInit {
     this.imageFailed = true;
   }
 
+  notesChanged(e: any) {
+    if (this.notes != e.detail.value) {
+      this.isDirty = true;
+      this.notes = e.detail.value;
+    }
+  }
+
   dateChanged(e: any) {
-    console.log("DateChanged: ", e);
     if (this.isoDate != e.detail.value) {
       this.isDirty = true;
       this.isoDate = e.detail.value;
@@ -129,6 +134,7 @@ export class ModalViewLicensePage implements OnInit {
     console.log("cancel changes");
     this.isoDate = formatISO(this.glp.createdDateTime);
     this.location = this.glp.location ?? "";
+    this.notes = this.glp.notes ?? "";
     this.vehicleTypes = this.glp.vehicleTypes ?? [VehicleType.Car];
     this.isCarChecked = true;
     this.isTruckChecked = false;
@@ -144,6 +150,7 @@ export class ModalViewLicensePage implements OnInit {
       saved: saved,
       date: this.isoDate,
       location: this.location,
+      notes: this.notes,
       vehicleTypes: this.vehicleTypes
     });
   }
