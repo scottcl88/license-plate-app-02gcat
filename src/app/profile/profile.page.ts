@@ -170,6 +170,7 @@ export class ProfilePage implements OnInit, OnDestroy {
   }
 
   async showEmailModal() {
+    console.log("showEmailModal called");
     const modal = await this.modalController.create({
       component: ModalEmailPage,
       componentProps: {
@@ -184,6 +185,7 @@ export class ProfilePage implements OnInit, OnDestroy {
   }
 
   async exportData(email: string) {
+    console.log("ExportData called for email: ", email);
     let gameClient = new GameClient(this.httpClient, environment.API_BASE_URL);
     let request = new EmailGameDataRequest();
     request.email = email;

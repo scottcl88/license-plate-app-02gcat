@@ -1,13 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
+
+    namespace 'com.lewis.cargame'
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.lewis.cargame"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 12
-        versionName "1.1.0"
+        versionCode 13
+        versionName "1.1.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

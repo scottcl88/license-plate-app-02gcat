@@ -310,6 +310,7 @@ export class HomePage implements OnInit {
     if (data && data.saved && data.selectedState) {
       let recordLocationOption = await Preferences.get({ key: "RecordLocationOption" });
       console.log("recordLocationOption: ", recordLocationOption);
+      console.log("selectedState: ", data.selectedState);
       if (recordLocationOption && recordLocationOption.value) {
         if (recordLocationOption.value == "alwaysAllow") {
           try {
@@ -349,10 +350,10 @@ export class HomePage implements OnInit {
           const coordinates = await Geolocation.getCurrentPosition();
           let model = new CoordinatesPositionModel();
           model.init(coordinates.coords);
-          this.addLicensePlateToGame(data.selectedState, model);
+          this.addLicensePlateToGame(selectedState, model);
         } catch (err) {
           console.error("Failed to getCurrentPosition", err);
-          this.addLicensePlateToGame(data.selectedState, undefined);
+          this.addLicensePlateToGame(selectedState, undefined);
         }
       }
     } else {
