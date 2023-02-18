@@ -18,7 +18,9 @@ export class ModalEditGamePage implements OnInit {
   @ViewChild(IonInput) inputText: IonInput;
 
   public allGames: GameModel[] = [];
+  public gameId: number;
   public title: string = "";
+  public description: string = "";
   public isNew: boolean = false;
   public disabled: boolean = false;
 
@@ -60,7 +62,7 @@ export class ModalEditGamePage implements OnInit {
     this.title = e.detail.value;
     console.log("inputOnChange: ", text);
     if (text) {
-      let foundTitle = this.allGames.find(x => x.title == text);
+      let foundTitle = this.allGames.find(x => x.title == text && x.gameId != this.gameId);
       if (foundTitle) {
         this.disabled = true;
       } else {
@@ -71,13 +73,18 @@ export class ModalEditGamePage implements OnInit {
     }
   }
 
+  descriptionOnChange(e: any){
+    this.description = e.detail.value;
+  }
+
 
   dismiss(saved: boolean) {
     // using the injected ModalController this page
     // can "dismiss" itself and optionally pass back data
     this.modalController.dismiss({
       saved: saved,
-      title: this.title
+      title: this.title,
+      description: this.description
     });
   }
 }

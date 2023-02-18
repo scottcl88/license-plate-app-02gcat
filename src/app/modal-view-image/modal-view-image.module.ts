@@ -12,7 +12,6 @@ import { IonicModule } from '@ionic/angular';
 import { ModalViewImagePage } from './modal-view-image.page';
 import { HeaderModule } from '../header/header.module';
 import { UsMapModule } from '../us-map/us-map.module';
-import { SwiperModule } from 'swiper/angular';
 
 @NgModule({
   imports: [
@@ -21,8 +20,7 @@ import { SwiperModule } from 'swiper/angular';
     IonicModule,
     HeaderModule,
     ReactiveFormsModule,
-    UsMapModule,
-    SwiperModule
+    UsMapModule
   ],
   declarations: [ModalViewImagePage],
   schemas: [ CUSTOM_ELEMENTS_SCHEMA ]

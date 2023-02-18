@@ -4,7 +4,6 @@ Copyright 2023 Scott Lewis, All rights reserved.
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core'
 import { IonSlides, ModalController } from '@ionic/angular';
 import Swiper, { SwiperOptions, Zoom } from 'swiper';
-import { SwiperComponent } from 'swiper/angular';
 import { UsMapComponent } from '../us-map/us-map.component';
 
 @Component({
@@ -14,7 +13,7 @@ import { UsMapComponent } from '../us-map/us-map.component';
 })
 export class ModalViewImagePage implements OnInit {
 
-  @ViewChild('swiper', { static: false }) swiper: SwiperComponent;
+  // @ViewChild('swiper', { static: false }) swiper: SwiperComponent;
   @ViewChild("canvasContainer", { static: false }) canvasContainer: ElementRef;
   @ViewChild("imgContainer2", { static: false }) imgContainer: ElementRef;
   @ViewChild('newSwiper') newSwiper: any;

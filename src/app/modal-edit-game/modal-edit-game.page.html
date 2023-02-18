@@ -19,7 +19,7 @@ Copyright 2023 Scott Lewis, All rights reserved.
   </ion-item>
   <ion-item>
     <ion-label position="floating">Description</ion-label>
-    <ion-textarea></ion-textarea>
+    <ion-textarea (ionChange)="descriptionOnChange($event)" [value]="description"></ion-textarea>
     <ion-note slot="helper" style="font-size: 14px;">Optionally add a description or notes about this game</ion-note>
   </ion-item>
   <div style="display: block; margin-top: 15px;">

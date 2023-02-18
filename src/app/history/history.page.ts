@@ -120,20 +120,23 @@ export class HistoryPage implements OnInit {
       component: ModalEditGamePage,
       componentProps: {
         isNew: false,
-        title: game.title
+        gameId: game.gameId,
+        title: game.title,
+        description: game.description
       },
     });
     modal.present();
     const { data } = await modal.onDidDismiss();
     console.log('Select Modal Dismissed: ', data);
     if (data && data.saved && data.title) {
-      this.saveGame(game, data.title);
+      this.saveGame(game, data.title, data.description);
     }
   }
-  async saveGame(game: GameModel, title: string) {
+  async saveGame(game: GameModel, title: string, description: string) {
     let gameIndex = this.games.findIndex(x => x.gameId == game.gameId);
     if (gameIndex >= 0) {
       this.games[gameIndex].title = title;
+      this.games[gameIndex].description = description;
     }
     this.gameService.saveGame(this.games[gameIndex]).then(res => {
       console.log("save game finished, reload games");

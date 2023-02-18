@@ -19,7 +19,7 @@ import { ModalViewImagePage } from '../modal-view-image/modal-view-image.page';
 import { UsMapComponent } from '../us-map/us-map.component';
 import Swiper, { SwiperOptions, Zoom } from 'swiper';
 import { ZoomOptions } from 'swiper/types';
-import { EventsParams, SwiperComponent } from 'swiper/angular';
+// import { EventsParams, SwiperComponent } from 'swiper/angular';
 import { Geolocation } from '@capacitor/geolocation';
 import { Position } from '@capacitor/geolocation/dist/esm/definitions';
 import { ModalLocationPage } from '../modal-location/modal-location.page';
@@ -76,7 +76,7 @@ export class HomePage implements OnInit {
   @ViewChild("imgContainer", { static: false }) imgContainer: ElementRef;
   @ViewChild("usMapContainer", { static: false }) usMap: UsMapComponent;
   @ViewChild("canvasContainer", { static: false }) canvasContainer: ElementRef;
-  @ViewChild("newSwiper", { static: false }) newSwiper: SwiperComponent;
+  // @ViewChild("newSwiper", { static: false }) newSwiper: SwiperComponent;
 
   public showZoomMap: boolean = true;
   public showDefaultMap: boolean = true;
@@ -101,7 +101,6 @@ export class HomePage implements OnInit {
   ngAfterViewInit(): void {
     setTimeout(() => {
       //this.svgConvert();
-      console.log("newSwiper: ", this.newSwiper);
       // this.newSwiper.s_zoomChange.subscribe(
       //   next => {
       //     console.log("zoom subscribe change");
@@ -320,7 +319,8 @@ export class HomePage implements OnInit {
             this.addLicensePlateToGame(data.selectedState, model);
           } catch (err) {
             console.error("Failed to getCurrentPosition", err);
-            this.addLicensePlateToGame(data.selectedState, undefined);
+            this.coreUtilService.presentToastError("Please enable location services");
+            this.recordLocation(data.selectedState);
           }
         } else if (recordLocationOption.value == "neverAllow") {
           this.addLicensePlateToGame(data.selectedState, undefined);
@@ -353,8 +353,11 @@ export class HomePage implements OnInit {
           this.addLicensePlateToGame(selectedState, model);
         } catch (err) {
           console.error("Failed to getCurrentPosition", err);
-          this.addLicensePlateToGame(selectedState, undefined);
+          this.coreUtilService.presentToastError("Please enable location services");
+          this.recordLocation(selectedState);
         }
+      } else {
+        this.addLicensePlateToGame(selectedState, undefined);
       }
     } else {
       this.addLicensePlateToGame(selectedState, undefined);
@@ -378,7 +381,7 @@ export class HomePage implements OnInit {
     console.log('showStartGameModal Modal Dismissed: ', JSON.stringify(data));
     if (data && data.saved && data.title) {
       this.currentGame = undefined;
-      this.startNewGame(data.title);
+      this.startNewGame(data.title, data.description);
     }
   }
 
@@ -388,7 +391,9 @@ export class HomePage implements OnInit {
       component: ModalEditGamePage,
       componentProps: {
         isNew: false,
-        title: this.currentGame?.title
+        gameId: this.currentGame?.gameId,
+        title: this.currentGame?.title,
+        description: this.currentGame?.description
       },
     });
     modal.present();
@@ -396,6 +401,7 @@ export class HomePage implements OnInit {
     console.log('showEditGameModal Modal Dismissed: ', JSON.stringify(data));
     if (data && data.saved && data.title && this.currentGame) {
       this.currentGame.title = data.title;
+      this.currentGame.description = data.description;
       this.gameService.saveGame(this.currentGame);
     }
   }
@@ -428,13 +434,15 @@ export class HomePage implements OnInit {
     }
   }
 
-  async startNewGame(title: string) {
-    if (this.currentGame != undefined) {
-      this.confirmNewGame();
-      return;
-    }
+  async startNewGame(title: string, description: string) {
+    // if (this.currentGame != undefined) {
+    //   this.confirmNewGame();
+    //   return;
+    // }
     console.log("Starting new game");
     this.currentGame = new GameModel();
+
+    this.currentGame.description = description;
 
     if (title) {
       this.currentGame.title = title;
@@ -458,7 +466,7 @@ export class HomePage implements OnInit {
   async confirmNewGame() {
     const alert = await this.alertController.create({
       header: 'Are you sure?',
-      subHeader: 'The current game will be ended.',
+      subHeader: 'The current game will end.',
       buttons: [
         {
           text: 'Cancel',
@@ -485,6 +493,13 @@ export class HomePage implements OnInit {
 
     if (!this.currentGame) {
       console.error("No current game");
+      this.coreUtilService.presentToastError();
+      return;
+    }
+
+    if (!lp || lp == undefined || lp == null) {
+      console.error("lp not set in addLicensePlateToGame");
+      this.coreUtilService.presentToastError();
       return;
     }
 

@@ -23,6 +23,7 @@ export class ModalViewLicensePage implements OnInit {
   public imageFailed: boolean = false;
   public isoDate: string;
   public location: CoordinatesPositionModel | undefined;
+  public locationHref: string = "";
   public notes: string;
   public vehicleTypes: VehicleType[];
   public isDirty: boolean = false;
@@ -50,6 +51,7 @@ export class ModalViewLicensePage implements OnInit {
     this.vehicleTypes = this.glp.vehicleTypes ?? [VehicleType.Car];
     this.latText = this.location?.latitude?.toPrecision(5) ?? "";
     this.lngText = this.location?.longitude?.toPrecision(5) ?? "";
+    this.locationHref = `https://www.google.com/maps?q=${this.latText},${this.lngText}`;
     this.updateChecked();
   }
 
@@ -144,7 +146,7 @@ export class ModalViewLicensePage implements OnInit {
           text: 'Cancel',
           role: 'cancel',
           handler: () => {
-            
+
           },
         },
         {
@@ -153,6 +155,35 @@ export class ModalViewLicensePage implements OnInit {
           handler: () => {
             this.location = undefined;
             this.isDirty = true;
+          },
+        },
+      ],
+    });
+
+    await alert.present();
+  }
+
+  async confirmLeave() {
+    if (!this.isDirty) {
+      this.dismiss(false, false);
+      return;
+    }
+    const alert = await this.alertController.create({
+      header: 'Are you sure?',
+      subHeader: 'You have unsaved changes.',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          handler: () => {
+            console.log("Confirm leave");
+          },
+        },
+        {
+          text: 'OK',
+          role: 'confirm',
+          handler: () => {
+            this.dismiss(false, false);
           },
         },
       ],

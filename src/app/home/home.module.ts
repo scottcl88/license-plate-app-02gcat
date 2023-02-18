@@ -12,7 +12,7 @@ import { ModalViewLicensePageModule } from '../modal-view-license/modal-view-lic
 import { DateFnsModule } from 'ngx-date-fns';
 import { UsMapModule } from '../us-map/us-map.module';
 import { ModalViewImageModule } from '../modal-view-image/modal-view-image.module';
-import { SwiperModule } from 'swiper/angular';
+// import { SwiperModule } from 'swiper/angular';
 import { ModalEditGamePageModule } from '../modal-edit-game/modal-edit-game.module';
 import { ModalLocationPageModule } from '../modal-location/modal-location.module';
 
@@ -28,9 +28,8 @@ import { ModalLocationPageModule } from '../modal-location/modal-location.module
     DateFnsModule,
     UsMapModule,
     ModalViewImageModule,
-    SwiperModule,
+    // SwiperModule,
     ModalEditGamePageModule,
-    SwiperModule,
     ModalLocationPageModule
   ],
   declarations: [HomePage]

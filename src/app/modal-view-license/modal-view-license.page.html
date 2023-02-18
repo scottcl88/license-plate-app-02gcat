@@ -3,7 +3,7 @@ Copyright 2023 Scott Lewis, All rights reserved.
 -->
 <app-header title="Found License Plate" titleMarginLeft="0px" [menuButton]="false">
   <ion-buttons slot="end">
-    <ion-button (click)="dismiss(false, false)">
+    <ion-button (click)="confirmLeave()">
       <ion-icon name="close-sharp"></ion-icon>
     </ion-button>
   </ion-buttons>
@@ -44,9 +44,9 @@ Copyright 2023 Scott Lewis, All rights reserved.
       </ion-item>
       <ion-item *ngIf="location != undefined">
         <ion-label>Location
-          <p> (lat, lng)</p>
+          <p> (Approx.)</p>
         </ion-label>
-        <ion-text>{{this.latText}}, {{this.lngText}}</ion-text>
+        <ion-text><a [href]="locationHref" target="_blank">{{this.latText}}, {{this.lngText}}</a></ion-text>
         <ion-icon slot="end" name="trash" style="margin-left: 20px;" (click)="deleteLocation()"></ion-icon>
       </ion-item>
       <ion-item>

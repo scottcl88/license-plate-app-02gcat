@@ -14,12 +14,10 @@
   <ion-popover trigger="click-trigger" triggerAction="click">
     <ng-template>
       <ion-list>
-        <ion-item (click)="confirmNewGame()" *ngIf="currentGame != null" lines="full"><ion-icon name="add"
-            slot="start"></ion-icon> New Game</ion-item>
-        <ion-item (click)="showStartGameModal()" *ngIf="currentGame == null" lines="full"><ion-icon name="add"
+        <ion-item (click)="showStartGameModal()" lines="full"><ion-icon name="add"
             slot="start"></ion-icon> New Game</ion-item>
         <ion-item (click)="showEditGameModal()" *ngIf="currentGame != null" lines="none"><ion-icon name="pencil"
-            slot="start"></ion-icon> Edit Name</ion-item>
+            slot="start"></ion-icon> Edit Game</ion-item>
       </ion-list>
     </ng-template>
   </ion-popover>
@@ -31,7 +29,7 @@
       <div *ngIf="this.currentLicensePlates.length >= this.allLicensePlates.length">
         <h2>Congratulations!</h2>
         <h5>You found all the states!</h5>
-        <ion-button (click)="confirmNewGame()" style="margin-bottom: 30px;">Start new game</ion-button>
+        <ion-button (click)="showStartGameModal()" style="margin-bottom: 30px;">Start new game</ion-button>
       </div>
       <div *ngIf="this.currentLicensePlates.length < this.allLicensePlates.length" class="map-container">
         <ion-text style="text-align: center; font-weight: bold; margin-top: 5px; display: block;">Found
