@@ -17,6 +17,7 @@ import { ModalEmailPage } from '../modal-email/modal-email.page';
 import { GameService } from '../game.service';
 import { Preferences } from '@capacitor/preferences';
 import { ModalLocationPage } from '../modal-location/modal-location.page';
+import { ModalImportPage } from '../modal-import/modal-import.page';
 
 @Component({
   selector: 'app-profile',
@@ -167,6 +168,21 @@ export class ProfilePage implements OnInit, OnDestroy {
 
   async viewSaves() {
     GoogleGameServices.showSavedGamesUI();
+  }
+
+  async showImportModal() {
+    console.log("showImportModal called");
+    const modal = await this.modalController.create({
+      component: ModalImportPage,
+      componentProps: {
+      },
+    });
+    modal.present();
+    const { data } = await modal.onDidDismiss();
+    console.log('Select Modal Dismissed: ', data);
+    if (data && data.saved && data.gameData) {
+      this.gameService.importGameData(data.gameData);
+    }
   }
 
   async showEmailModal() {

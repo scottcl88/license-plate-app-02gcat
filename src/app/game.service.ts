@@ -46,6 +46,16 @@ export class GameService {
     return largestGameId + 1;
   }
 
+  getGameTitleCopy(gameId: number, title: string) {
+    let newTitle = title + "";
+    this.allGames?.forEach(g => {
+      if (g && g.gameId != gameId && g.title == title && g.deletedDateTime == undefined) {
+        newTitle = g.title + " - Copy";
+      }
+    });
+    return newTitle;
+  }
+
   getCurrentGame() {
     let foundGame = this.allGames.find(x => x.finishedDateTime == undefined && x.startedDateTime != undefined && x.deletedDateTime == undefined);
     return foundGame;
@@ -165,6 +175,39 @@ export class GameService {
     }
   }
 
+  async importGameData(gameData: string) {
+    if (gameData) {
+      try {
+        let parseObj = JSON.parse(gameData);
+        if (parseObj) {
+          let parseObjArr = JSON.parse(parseObj);
+          let newGameArr: GameModel[] = [];
+          parseObjArr.forEach((g: any) => {
+            let newGame = new GameModel(g);
+            newGame.gameId = this.getNewGameId();
+            console.log("getting title: ", newGame.gameId, newGame.title, this.allGames);
+            newGame.title = this.getGameTitleCopy(newGame.gameId, newGame.title ?? "");
+            console.log("newGame: ", newGame);
+            newGameArr.push(newGame);
+          });
+          newGameArr.forEach((g: any) => {
+            this.allGames.push(g);
+          })
+          console.log("allGames: ", this.allGames);
+          await this.doSave();
+          this.coreUtilService.presentToastSuccess("Successfully imported");
+        } else {
+          this.coreUtilService.presentToastError();
+        }
+      } catch (err) {
+        console.error("importGameData error: ", err);
+        this.coreUtilService.presentToastError();
+      }
+    } else {
+      this.coreUtilService.presentToastError();
+    }
+  }
+
   async loadGameData(): Promise<void> {
     return new Promise(async (resolve: any) => {
       if (this.hasLoaded) {
@@ -221,7 +264,7 @@ export class GameService {
             newGlp.licensePlate.state = new StateModel(glp.licensePlate.state);
           }
         }
-        if(glp.location){
+        if (glp.location) {
           newGlp.location = new CoordinatesPositionModel(glp.location);
         }
         lpArr.push(newGlp);

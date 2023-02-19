@@ -1,0 +1,22 @@
+<!--
+Copyright 2023 Scott Lewis, All rights reserved.
+-->
+<app-header title="Import Data" titleMarginLeft="0px" [menuButton]="false">
+  <ion-buttons slot="end">
+    <ion-button (click)="dismiss(false)">
+      <ion-icon name="close-sharp"></ion-icon>
+    </ion-button>
+  </ion-buttons>
+</app-header>
+
+<ion-content>
+  <ion-item>
+    <ion-label position="stacked">Exported Data</ion-label>
+    <ion-textarea type="data" #inputText (ionChange)="inputOnChange($event)" [autofocus]="true" [value]="data"></ion-textarea>
+    <ion-note color="danger" *ngIf="disabled && !data" style="font-size: 14px;">Data is required</ion-note>
+  </ion-item>
+  <p style="margin-left: 15px;">Paste the contents of the file sent to your email from 'export data'.</p>
+  <div style="display: block; margin-top: 15px;">
+    <ion-button (click)="dismiss(true)" expand="block" [disabled]="disabled">Input Data</ion-button>
+  </div>
+</ion-content>

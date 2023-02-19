@@ -12,6 +12,7 @@ import { ProfilePageRoutingModule } from './profile-routing.module';
 import { ProfilePage } from './profile.page';
 import { HeaderModule } from '../header/header.module';
 import { ModalEmailPageModule } from '../modal-email/modal-email.module';
+import { ModalImportPageModule } from '../modal-import/modal-import.module';
 
 @NgModule({
   imports: [
@@ -21,7 +22,8 @@ import { ModalEmailPageModule } from '../modal-email/modal-email.module';
     ReactiveFormsModule,
     ProfilePageRoutingModule,
     HeaderModule,
-    ModalEmailPageModule
+    ModalEmailPageModule,
+    ModalImportPageModule
   ],
   declarations: [ProfilePage],
   schemas: [ CUSTOM_ELEMENTS_SCHEMA ]
